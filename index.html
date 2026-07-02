@@ -20,39 +20,39 @@
 
   /* --- Stop Header --- */
   .stop-name { text-align: center; margin-bottom: 18px; }
-  .stop-name .badge { font-size: 12px; color: #94a3b8; }
-  .stop-name h1 { font-size: 20px; font-weight: 700; margin-top: 2px; }
-  .stop-name .clock { font-size: 13px; color: #64748b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stop-name .badge { font-size: 14px; color: #94a3b8; }
+  .stop-name h1 { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .stop-name .clock { font-size: 15px; color: #64748b; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
   /* --- Bus List --- */
   .bus-list { display: flex; flex-direction: column; gap: 10px; }
   .bus-row {
     background: #1e293b;
     border-radius: 16px;
-    padding: 14px 18px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
   .bus-row .route-tag {
     background: #eab308;
     color: #0f172a;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 800;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 10px;
-    min-width: 50px;
+    min-width: 56px;
     text-align: center;
     flex-shrink: 0;
     letter-spacing: 1px;
   }
   .bus-row .dest-info { flex: 1; min-width: 0; }
   .bus-row .dest-info .dest {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
   }
   .bus-row .dest-info .dest-sub {
-    font-size: 11px;
+    font-size: 13px;
     color: #64748b;
     white-space: nowrap;
     overflow: hidden;
@@ -60,17 +60,17 @@
   }
   .bus-row .eta { text-align: right; flex-shrink: 0; }
   .bus-row .eta .num {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }
-  .bus-row .eta .num .unit { font-size: 14px; font-weight: 600; margin-left: 2px; }
+  .bus-row .eta .num .unit { font-size: 16px; font-weight: 600; margin-left: 2px; }
   .bus-row .eta .num.due    { color: #22c55e; }
   .bus-row .eta .num.near   { color: #eab308; }
   .bus-row .eta .num.far    { color: #60a5fa; }
-  .bus-row .eta .num.arriving { color: #22c55e; font-size: 18px; }
-  .bus-row .eta .num.none   { color: #475569; font-size: 16px; }
+  .bus-row .eta .num.arriving { color: #22c55e; font-size: 20px; }
+  .bus-row .eta .num.none   { color: #475569; font-size: 18px; }
   .bus-row .eta .tag {
     font-size: 9px;
     font-weight: 700;
@@ -99,22 +99,22 @@
   }
   .weather-card .w-info { flex: 1; }
   .weather-card .w-temp {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
     line-height: 1;
   }
   .weather-card .w-temp .deg {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 400;
     color: #94a3b8;
   }
   .weather-card .w-desc {
-    font-size: 13px;
+    font-size: 15px;
     color: #94a3b8;
     margin-top: 2px;
   }
   .weather-card .w-humidity {
-    font-size: 12px;
+    font-size: 14px;
     color: #64748b;
     margin-top: 1px;
   }
@@ -241,6 +241,11 @@ function renderWeather(d) {
   const warnings = d.warningMessage || [];
   const tcm = d.tcmessage || [];
 
+  // Only show TC bulletin if there's an active TC warning
+  const hasActiveTC = warnings.some(w =>
+    w.includes('熱帶氣旋') || w.includes('Cyclone') || w.includes('Signal')
+  );
+
   let wHtml = '';
   for (const w of warnings) {
     const cls = w.includes('熱帶氣旋') || w.includes('Cyclone') ? 'tc' :
@@ -250,9 +255,12 @@ function renderWeather(d) {
     const label = w.split(/[。！]/)[0].trim() || w;
     wHtml += `<span class="badge ${cls}">${label.slice(0, 36)}</span>`;
   }
-  for (const t of tcm) {
-    const label = t.split('\n')[0].replace(/^Here is the /i, '').slice(0, 36);
-    wHtml += `<span class="badge tc">🌀 ${label}</span>`;
+  // Only show tcmessage if a TC warning is actually active (skip stale bulletins)
+  if (hasActiveTC) {
+    for (const t of tcm) {
+      const label = t.split('\n')[0].replace(/^Here is the /i, '').slice(0, 36);
+      wHtml += `<span class="badge tc">🌀 ${label}</span>`;
+    }
   }
 
   $('weather').innerHTML = `
