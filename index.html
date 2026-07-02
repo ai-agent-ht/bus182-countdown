@@ -16,170 +16,118 @@
     justify-content: center;
     padding: 20px;
   }
-  .container {
-    width: 100%;
-    max-width: 440px;
-  }
+  .container { width: 100%; max-width: 440px; }
   
-  /* --- Stop Header --- */
-  .stop-name {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .stop-name .badge {
-    font-size: 12px;
-    color: #94a3b8;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .stop-name h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin-top: 4px;
-  }
-  .stop-name .clock {
-    font-size: 14px;
-    color: #64748b;
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-  }
+  .stop-name { text-align: center; margin-bottom: 28px; }
+  .stop-name .badge { font-size: 12px; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; }
+  .stop-name h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .stop-name .clock { font-size: 14px; color: #64748b; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
-  /* --- Route Cards --- */
   .route-card {
     background: #1e293b;
     border-radius: 20px;
-    padding: 28px 24px;
-    margin-bottom: 16px;
+    padding: 24px;
+    margin-bottom: 14px;
   }
-  .route-card:last-child {
-    margin-bottom: 0;
-  }
-  .route-card .top {
+  .route-card:last-child { margin-bottom: 0; }
+
+  .route-header {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
   }
-  .route-card .route-num {
+  .route-num {
     background: #eab308;
     color: #0f172a;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 800;
-    padding: 4px 16px;
-    border-radius: 12px;
+    padding: 4px 14px;
+    border-radius: 10px;
     letter-spacing: 1px;
     line-height: 1.2;
+    flex-shrink: 0;
   }
-  .route-card .route-dest {
-    flex: 1;
-  }
-  .route-card .route-dest .dest {
-    font-size: 16px;
-    font-weight: 600;
-  }
-  .route-card .route-dest .dest-sub {
-    font-size: 12px;
-    color: #64748b;
-  }
+  .route-dest { flex: 1; min-width: 0; }
+  .route-dest .dest { font-size: 16px; font-weight: 600; }
+  .route-dest .dest-sub { font-size: 12px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* --- ETA Display --- */
-  .eta-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  /* --- No service --- */
+  .no-service {
+    text-align: center;
+    padding: 24px 0;
   }
-  .eta-item {
+  .no-service .icon { font-size: 36px; margin-bottom: 8px; }
+  .no-service .msg { font-size: 16px; color: #64748b; }
+  .no-service .sub-msg { font-size: 13px; color: #475569; margin-top: 4px; }
+
+  /* --- Bus list --- */
+  .bus-list { display: flex; flex-direction: column; gap: 10px; }
+  .bus-row {
     display: flex;
-    align-items: baseline;
     justify-content: space-between;
+    align-items: center;
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 14px 18px;
   }
-  .eta-item .label {
-    font-size: 14px;
+  .bus-row .label {
+    font-size: 13px;
     color: #94a3b8;
     font-weight: 500;
   }
-  .eta-item .eta-min {
-    font-size: 48px;
+  .bus-row .label .tag-final {
+    display: inline-block;
+    background: #eab308;
+    color: #0f172a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .bus-row .eta-main {
+    text-align: right;
+  }
+  .bus-row .eta-num {
+    font-size: 44px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }
-  .eta-item .eta-min .unit {
-    font-size: 20px;
+  .bus-row .eta-num .unit {
+    font-size: 18px;
     font-weight: 600;
-    margin-left: 4px;
+    margin-left: 3px;
   }
-  .eta-item .eta-min.due {
-    color: #22c55e;
-  }
-  .eta-item .eta-min.near {
-    color: #eab308;
-  }
-  .eta-item .eta-min.far {
-    color: #60a5fa;
-  }
-  .eta-item .eta-min.departed {
-    color: #ef4444;
-    font-size: 24px;
-  }
-  .eta-item .eta-min.none {
-    color: #475569;
-    font-size: 24px;
-  }
-  .eta-item .eta-min .final-bus {
-    font-size: 14px;
-    color: #eab308;
-    font-weight: 600;
-  }
-  .next-bus {
-    display: flex;
-    justify-content: flex-end;
-    font-size: 13px;
-    color: #64748b;
-    margin-top: -4px;
-  }
+  .bus-row .eta-num.due { color: #22c55e; }
+  .bus-row .eta-num.near { color: #eab308; }
+  .bus-row .eta-num.far { color: #60a5fa; }
+  .bus-row .eta-num.departed { color: #ef4444; font-size: 22px; }
+  .bus-row .eta-num.arriving { color: #22c55e; font-size: 22px; }
 
-  /* --- Status bar --- */
   .status-bar {
     text-align: center;
-    margin-top: 24px;
+    margin-top: 20px;
     font-size: 12px;
     color: #475569;
     display: flex;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
   }
 
-  /* --- Error --- */
-  .error-msg {
-    text-align: center;
-    padding: 40px 20px;
-    color: #ef4444;
-  }
+  .error-msg { text-align: center; padding: 40px 20px; color: #ef4444; }
   .error-msg button {
-    margin-top: 12px;
-    padding: 10px 28px;
-    border-radius: 12px;
-    border: none;
-    background: #eab308;
-    color: #0f172a;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
+    margin-top: 12px; padding: 10px 28px; border-radius: 12px;
+    border: none; background: #eab308; color: #0f172a;
+    font-weight: 700; font-size: 16px; cursor: pointer;
   }
-
-  .loading {
-    text-align: center;
-    padding: 60px 0;
-    color: #64748b;
-  }
+  .loading { text-align: center; padding: 60px 0; color: #64748b; }
   .loading .spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid #1e293b;
-    border-top-color: #eab308;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    width: 48px; height: 48px;
+    border: 4px solid #1e293b; border-top-color: #eab308;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
     margin: 0 auto 20px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -187,6 +135,7 @@
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
     .route-card { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .bus-row { background: #f1f5f9; }
     .loading .spinner { border-color: #e2e8f0; border-top-color: #eab308; }
   }
 </style>
@@ -214,82 +163,103 @@
 
 <script>
 const STOP_ID = '66C6FDFC88F56E51';
+const STOP_NAME_TC = '醫療輔助總部';
 const API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const HKTZ = 'Asia/Hong_Kong';
 
 const ROUTES = [
-  { route: '182', dir: 'O', num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', color: '#eab308' },
-  { route: '113', dir: 'O', num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', color: '#eab308' },
+  { route: '182', dir: 'O', num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)' },
+  { route: '113', dir: 'O', num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)' },
 ];
 
 function $(id) { return document.getElementById(id); }
 
 function formatETA(etaStr) {
-  if (!etaStr) return { text: '—', cls: 'none', sub: '' };
+  if (!etaStr) return null;
   const now = new Date();
   const eta = new Date(etaStr);
   const diffSec = Math.floor((eta - now) / 1000);
+  if (diffSec < -120) return { text: '已開出', cls: 'departed' };
 
-  if (diffSec < -120) return { text: '已開出', cls: 'departed', sub: '' };
-  if (diffSec < 60) return { text: '即將到站', cls: 'due', sub: '' };
+  if (diffSec <= 60) return { text: '即將到站', cls: 'arriving' };
 
   const mins = Math.floor(diffSec / 60);
   let cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : 'far';
-  return { text: mins, cls, sub: '分鐘', isFinal: false };
+  let txt = mins >= 10 ? `${mins}` : `${mins}:${String(diffSec % 60).padStart(2, '0')}`;
+  return { text: txt, cls, unit: '分鐘' };
 }
 
 function render(eta182, eta113) {
   const app = $('app');
 
-  const has182 = eta182.length > 0;
-  const has113 = eta113.length > 0;
-
   function buildRouteHTML(rt, etaData) {
-    const etas = etaData.filter(e => e.dir === rt.dir);
-    const eta1 = etas.find(e => e.eta_seq === 1);
-    const eta2 = etas.find(e => e.eta_seq === 2);
-    const isFinal = eta1?.rmk_en?.toLowerCase().includes('final') || 
-                    eta1?.rmk_tc?.includes('最後班次') || false;
+    // Filter for correct direction
+    const etas = etaData.filter(e => e.dir === rt.dir).sort((a, b) => a.eta_seq - b.eta_seq);
+    const isFinal = etas.some(e => 
+      (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) ||
+      (e.rmk_tc && e.rmk_tc.includes('最後班次'))
+    );
 
-    const f1 = formatETA(eta1?.eta);
-    const f2 = formatETA(eta2?.eta);
-
-    const cls1 = isFinal && f1.cls === 'far' ? 'departed' : f1.cls;
-    const text1 = isFinal && f1.cls === 'far' ? '已開出 (末班車)' : 
-                  isFinal && f1.cls !== 'none' ? `${f1.text}${f1.sub ? `<span class="unit">${f1.sub}</span>` : ''}<div class="final-bus">🚌 末班車</div>` :
-                  f1.text !== '—' ? `${f1.text}<span class="unit">${f1.sub}</span>` : f1.text;
-
-    const hasNext = !isFinal && f2.cls !== 'none' && f2.cls !== 'departed';
-
-    return `
-      <div class="route-card">
-        <div class="top">
-          <div class="route-num">${rt.num}</div>
-          <div class="route-dest">
-            <div class="dest">${rt.destTc}</div>
-            <div class="dest-sub">${rt.destEn}</div>
-          </div>
+    let html = `<div class="route-card">
+      <div class="route-header">
+        <div class="route-num">${rt.num}</div>
+        <div class="route-dest">
+          <div class="dest">${rt.destTc}</div>
+          <div class="dest-sub">${rt.destEn}</div>
         </div>
-        <div class="eta-area">
-          <div class="eta-item">
-            <div class="label">${isFinal ? '🚌 尾班車' : '下一班'}</div>
-            <div class="eta-min ${cls1}">${text1}</div>
+      </div>`;
+
+    // Filter out departed buses and null ETAs
+    const upcoming = [];
+    for (const e of etas) {
+      const f = formatETA(e.eta);
+      if (!f) continue; // no eta
+      if (f.cls === 'departed') continue; // already passed
+      upcoming.push({ data: e, formatted: f, isFinal });
+    }
+
+    if (upcoming.length === 0) {
+      // No upcoming buses — check if any departed or just no service
+      const hasDeparted = etas.some(e => {
+        const f = formatETA(e.eta);
+        return f && f.cls === 'departed';
+      });
+      const labels = ['沒有班次', '尾班車已過'];
+      html += `<div class="no-service">
+        <div class="icon">🌙</div>
+        <div class="msg">${hasDeparted ? labels[1] : labels[0]}</div>
+        <div class="sub-msg">下次更新自動檢查</div>
+      </div>`;
+    } else {
+      html += '<div class="bus-list">';
+      for (let i = 0; i < upcoming.length; i++) {
+        const u = upcoming[i];
+        const label = i === 0 ? (u.isFinal ? '🚌 尾班車' : '下一班') : 
+                      i === 1 ? '再下一班' : `第${i + 1}班`;
+        html += `<div class="bus-row">
+          <div class="label">${label}</div>
+          <div class="eta-main">
+            <div class="eta-num ${u.formatted.cls}">
+              ${u.formatted.text}
+              ${u.formatted.unit ? `<span class="unit">${u.formatted.unit}</span>` : ''}
+            </div>
           </div>
-          ${hasNext ? `
-          <div class="eta-item">
-            <div class="label">再下一班</div>
-            <div class="eta-min far">${f2.text}<span class="unit">${f2.sub}</span></div>
-          </div>` : ''}
-          ${!hasNext && !isFinal && f1.cls !== 'departed' && f1.cls !== 'none' ? '' : ''}
-        </div>
-      </div>
-    `;
+        </div>`;
+      }
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
   }
 
   let html = '';
   html += buildRouteHTML(ROUTES[0], eta182);
   html += buildRouteHTML(ROUTES[1], eta113);
   app.innerHTML = html;
+  $('status').textContent = '✓ ' + new Date().toLocaleTimeString('zh-HK', {
+    timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  });
 }
 
 async function fetchETA(route) {
@@ -302,11 +272,9 @@ async function update() {
   try {
     $('status').textContent = '更新中...';
     const [eta182, eta113] = await Promise.all([
-      fetchETA('182'),
-      fetchETA('113'),
+      fetchETA('182'), fetchETA('113'),
     ]);
     render(eta182, eta113);
-    $('status').textContent = `✓  ${new Date().toLocaleTimeString('zh-HK', { timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`;
   } catch (e) {
     $('app').innerHTML = `
       <div class="error-msg">
@@ -314,8 +282,7 @@ async function update() {
         <div>無法獲取到站資料</div>
         <div style="font-size:13px;margin-top:8px;color:#64748b">${e.message}</div>
         <button onclick="update()">重試</button>
-      </div>
-    `;
+      </div>`;
     $('status').textContent = '❌ 錯誤';
   }
 }
