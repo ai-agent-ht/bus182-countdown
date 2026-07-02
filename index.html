@@ -17,95 +17,84 @@
     padding: 20px;
   }
   .container { width: 100%; max-width: 440px; }
-  
+
   .stop-name { text-align: center; margin-bottom: 28px; }
-  .stop-name .badge { font-size: 12px; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; }
+  .stop-name .badge { font-size: 12px; color: #94a3b8; letter-spacing: 1px; }
   .stop-name h1 { font-size: 22px; font-weight: 700; margin-top: 4px; }
   .stop-name .clock { font-size: 14px; color: #64748b; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
-  .route-card {
+  .bus-list { display: flex; flex-direction: column; gap: 8px; }
+  .bus-row {
     background: #1e293b;
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 14px;
-  }
-  .route-card:last-child { margin-bottom: 0; }
-
-  .route-header {
+    border-radius: 16px;
+    padding: 16px 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 14px;
   }
-  .route-num {
+  .bus-row .route-tag {
     background: #eab308;
     color: #0f172a;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 800;
-    padding: 4px 14px;
+    padding: 4px 12px;
     border-radius: 10px;
     letter-spacing: 1px;
-    line-height: 1.2;
+    flex-shrink: 0;
+    min-width: 56px;
+    text-align: center;
+  }
+  .bus-row .route-tag.late {
+    background: #475569;
+    color: #94a3b8;
+  }
+  .bus-row .dest-info { flex: 1; min-width: 0; }
+  .bus-row .dest-info .dest {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .bus-row .dest-info .dest-sub {
+    font-size: 11px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bus-row .eta {
+    text-align: right;
     flex-shrink: 0;
   }
-  .route-dest { flex: 1; min-width: 0; }
-  .route-dest .dest { font-size: 16px; font-weight: 600; }
-  .route-dest .dest-sub { font-size: 12px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* --- No service --- */
-  .no-service {
-    text-align: center;
-    padding: 24px 0;
-  }
-  .no-service .icon { font-size: 36px; margin-bottom: 8px; }
-  .no-service .msg { font-size: 16px; color: #64748b; }
-  .no-service .sub-msg { font-size: 13px; color: #475569; margin-top: 4px; }
-
-  /* --- Bus list --- */
-  .bus-list { display: flex; flex-direction: column; gap: 10px; }
-  .bus-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0f172a;
-    border-radius: 14px;
-    padding: 14px 18px;
-  }
-  .bus-row .label {
-    font-size: 13px;
-    color: #94a3b8;
-    font-weight: 500;
-  }
-  .bus-row .label .tag-final {
-    display: inline-block;
-    background: #eab308;
-    color: #0f172a;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .bus-row .eta-main {
-    text-align: right;
-  }
-  .bus-row .eta-num {
-    font-size: 44px;
+  .bus-row .eta .num {
+    font-size: 40px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     line-height: 1;
   }
-  .bus-row .eta-num .unit {
-    font-size: 18px;
-    font-weight: 600;
-    margin-left: 3px;
+  .bus-row .eta .num .unit { font-size: 16px; font-weight: 600; margin-left: 2px; }
+  .bus-row .eta .num.due    { color: #22c55e; }
+  .bus-row .eta .num.near   { color: #eab308; }
+  .bus-row .eta .num.far    { color: #60a5fa; }
+  .bus-row .eta .num.arriving { color: #22c55e; font-size: 20px; }
+  .bus-row .eta .num.none   { color: #475569; font-size: 16px; }
+  .bus-row .eta .tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 2px;
   }
-  .bus-row .eta-num.due { color: #22c55e; }
-  .bus-row .eta-num.near { color: #eab308; }
-  .bus-row .eta-num.far { color: #60a5fa; }
-  .bus-row .eta-num.departed { color: #ef4444; font-size: 22px; }
-  .bus-row .eta-num.arriving { color: #22c55e; font-size: 22px; }
+  .bus-row .eta .tag.final {
+    background: #eab308;
+    color: #0f172a;
+  }
+
+  .no-service {
+    text-align: center;
+    padding: 40px 0;
+  }
+  .no-service .icon { font-size: 40px; margin-bottom: 8px; }
+  .no-service .msg { font-size: 18px; color: #64748b; font-weight: 600; }
 
   .status-bar {
     text-align: center;
@@ -134,8 +123,8 @@
 
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
-    .route-card { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-    .bus-row { background: #f1f5f9; }
+    .bus-row { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .bus-row .route-tag.late { background: #e2e8f0; color: #64748b; }
     .loading .spinner { border-color: #e2e8f0; border-top-color: #eab308; }
   }
 </style>
@@ -143,8 +132,8 @@
 <body>
 <div class="container">
   <div class="stop-name">
-    <div class="badge">🚏 巴士站</div>
-    <h1>醫療輔助總部</h1>
+    <div class="badge">🚏 醫療輔助總部</div>
+    <h1>即將到站的巴士</h1>
     <div class="clock" id="clock">--:--:--</div>
   </div>
 
@@ -157,20 +146,19 @@
 
   <div class="status-bar">
     <span id="status">載入中</span>
-    <span>數據: data.gov.hk</span>
+    <span>數據: data.gov.hk (KMB)</span>
   </div>
 </div>
 
 <script>
 const STOP_ID = '66C6FDFC88F56E51';
-const STOP_NAME_TC = '醫療輔助總部';
 const API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const HKTZ = 'Asia/Hong_Kong';
 
-const ROUTES = [
-  { route: '182', dir: 'O', num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)' },
-  { route: '113', dir: 'O', num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)' },
-];
+const ROUTES = {
+  182: { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O' },
+  113: { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O' },
+};
 
 function $(id) { return document.getElementById(id); }
 
@@ -180,112 +168,74 @@ function formatETA(etaStr) {
   const eta = new Date(etaStr);
   const diffSec = Math.floor((eta - now) / 1000);
   if (diffSec < -120) return { text: '已開出', cls: 'departed' };
-
   if (diffSec <= 60) return { text: '即將到站', cls: 'arriving' };
-
   const mins = Math.floor(diffSec / 60);
-  let cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : 'far';
-  let txt = mins >= 10 ? `${mins}` : `${mins}:${String(diffSec % 60).padStart(2, '0')}`;
+  const cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : 'far';
+  const txt = mins >= 10 ? `${mins}` : `${mins}:${String(diffSec % 60).padStart(2, '0')}`;
   return { text: txt, cls, unit: '分鐘' };
 }
 
-function render(eta182, eta113) {
+function render(allETAs) {
   const app = $('app');
 
-  function buildRouteHTML(rt, etaData) {
-    // Filter for correct direction
-    const etas = etaData.filter(e => e.dir === rt.dir).sort((a, b) => a.eta_seq - b.eta_seq);
-    const isFinal = etas.some(e => 
+  // Build a flat list of upcoming buses from all routes
+  const timeline = [];
+
+  for (const [routeId, info] of Object.entries(ROUTES)) {
+    const routeETAs = (allETAs[routeId] || [])
+      .filter(e => e.dir === info.dir)
+      .sort((a, b) => a.eta_seq - b.eta_seq);
+
+    const isFinal = routeETAs.some(e =>
       (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) ||
       (e.rmk_tc && e.rmk_tc.includes('最後班次'))
     );
 
-    let html = `<div class="route-card">
-      <div class="route-header">
-        <div class="route-num">${rt.num}</div>
-        <div class="route-dest">
-          <div class="dest">${rt.destTc}</div>
-          <div class="dest-sub">${rt.destEn}</div>
+    for (const e of routeETAs) {
+      const f = formatETA(e.eta);
+      if (!f) continue;
+      if (f.cls === 'departed') continue;
+      timeline.push({
+        route: info,
+        etaStr: e.eta,
+        etaNum: f,
+        seq: e.eta_seq,
+        isFinal: isFinal && e.eta_seq === 1,
+      });
+    }
+  }
+
+  // Sort by actual arrival time
+  timeline.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
+
+  if (timeline.length === 0) {
+    app.innerHTML = `
+      <div class="no-service">
+        <div class="icon">🌙</div>
+        <div class="msg">目前沒有班次</div>
+      </div>`;
+  } else {
+    let html = '<div class="bus-list">';
+    for (const t of timeline) {
+      html += `<div class="bus-row">
+        <div class="route-tag${t.etaNum.cls === 'none' ? ' late' : ''}">${t.route.num}</div>
+        <div class="dest-info">
+          <div class="dest">${t.route.destTc}</div>
+          <div class="dest-sub">${t.route.destEn}</div>
+        </div>
+        <div class="eta">
+          <div class="num ${t.etaNum.cls}">
+            ${t.etaNum.text}
+            ${t.etaNum.unit ? `<span class="unit">${t.etaNum.unit}</span>` : ''}
+          </div>
+          ${t.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
         </div>
       </div>`;
-
-    // Filter out departed buses and null ETAs
-    const upcoming = [];
-    for (const e of etas) {
-      const f = formatETA(e.eta);
-      if (!f) continue; // no eta
-      if (f.cls === 'departed') continue; // already passed
-      upcoming.push({ data: e, formatted: f, isFinal });
     }
-
-    if (upcoming.length === 0) {
-      // No upcoming buses — check if any departed or just no service
-      const hasDeparted = etas.some(e => {
-        const f = formatETA(e.eta);
-        return f && f.cls === 'departed';
-      });
-      const labels = ['沒有班次', '尾班車已過'];
-      html += `<div class="no-service">
-        <div class="icon">🌙</div>
-        <div class="msg">${hasDeparted ? labels[1] : labels[0]}</div>
-        <div class="sub-msg">下次更新自動檢查</div>
-      </div>`;
-    } else {
-      html += '<div class="bus-list">';
-      for (let i = 0; i < upcoming.length; i++) {
-        const u = upcoming[i];
-        const label = i === 0 ? (u.isFinal ? '🚌 尾班車' : '下一班') : 
-                      i === 1 ? '再下一班' : `第${i + 1}班`;
-        html += `<div class="bus-row">
-          <div class="label">${label}</div>
-          <div class="eta-main">
-            <div class="eta-num ${u.formatted.cls}">
-              ${u.formatted.text}
-              ${u.formatted.unit ? `<span class="unit">${u.formatted.unit}</span>` : ''}
-            </div>
-          </div>
-        </div>`;
-      }
-      html += '</div>';
-    }
-
     html += '</div>';
-    return html;
+    app.innerHTML = html;
   }
 
-  // Build route data with ETA info
-  const routeData = [
-    { info: ROUTES[0], eta: eta182 },
-    { info: ROUTES[1], eta: eta113 },
-  ];
-
-  // Find the soonest upcoming bus for each route
-  for (const rd of routeData) {
-    const dirEtas = rd.eta.filter(e => e.dir === rd.info.dir);
-    const valid = dirEtas
-      .map(e => ({ e, f: formatETA(e.eta) }))
-      .filter(x => x.f && x.f.cls !== 'departed');
-    valid.sort((a, b) => {
-      if (!a.e.eta) return 1;
-      if (!b.e.eta) return -1;
-      return new Date(a.e.eta) - new Date(b.e.eta);
-    });
-    rd.soonestEta = valid[0]?.e?.eta || null;
-  }
-
-  // Sort by soonest ETA first (null = no service → last)
-  routeData.sort((a, b) => {
-    if (!a.soonestEta && !b.soonestEta) return 0;
-    if (!a.soonestEta) return 1;
-    if (!b.soonestEta) return -1;
-    return new Date(a.soonestEta) - new Date(b.soonestEta);
-  });
-
-  let html = '';
-  for (const rd of routeData) {
-    html += buildRouteHTML(rd.info, rd.eta);
-  }
-  app.innerHTML = html;
   $('status').textContent = '✓ ' + new Date().toLocaleTimeString('zh-HK', {
     timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
   });
@@ -303,7 +253,7 @@ async function update() {
     const [eta182, eta113] = await Promise.all([
       fetchETA('182'), fetchETA('113'),
     ]);
-    render(eta182, eta113);
+    render({ 182: eta182, 113: eta113 });
   } catch (e) {
     $('app').innerHTML = `
       <div class="error-msg">
