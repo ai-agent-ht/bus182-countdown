@@ -253,9 +253,38 @@ function render(eta182, eta113) {
     return html;
   }
 
+  // Build route data with ETA info
+  const routeData = [
+    { info: ROUTES[0], eta: eta182 },
+    { info: ROUTES[1], eta: eta113 },
+  ];
+
+  // Find the soonest upcoming bus for each route
+  for (const rd of routeData) {
+    const dirEtas = rd.eta.filter(e => e.dir === rd.info.dir);
+    const valid = dirEtas
+      .map(e => ({ e, f: formatETA(e.eta) }))
+      .filter(x => x.f && x.f.cls !== 'departed');
+    valid.sort((a, b) => {
+      if (!a.e.eta) return 1;
+      if (!b.e.eta) return -1;
+      return new Date(a.e.eta) - new Date(b.e.eta);
+    });
+    rd.soonestEta = valid[0]?.e?.eta || null;
+  }
+
+  // Sort by soonest ETA first (null = no service → last)
+  routeData.sort((a, b) => {
+    if (!a.soonestEta && !b.soonestEta) return 0;
+    if (!a.soonestEta) return 1;
+    if (!b.soonestEta) return -1;
+    return new Date(a.soonestEta) - new Date(b.soonestEta);
+  });
+
   let html = '';
-  html += buildRouteHTML(ROUTES[0], eta182);
-  html += buildRouteHTML(ROUTES[1], eta113);
+  for (const rd of routeData) {
+    html += buildRouteHTML(rd.info, rd.eta);
+  }
   app.innerHTML = html;
   $('status').textContent = '✓ ' + new Date().toLocaleTimeString('zh-HK', {
     timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
