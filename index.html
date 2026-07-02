@@ -18,85 +18,14 @@
   }
   .container { width: 100%; max-width: 440px; }
 
-  /* --- Weather Card --- */
-  .weather-card {
-    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-    border-radius: 20px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .weather-card .w-icon {
-    font-size: 48px;
-    width: 64px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .weather-card .w-info { flex: 1; }
-  .weather-card .w-temp {
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .weather-card .w-temp .deg {
-    font-size: 20px;
-    font-weight: 400;
-    color: #94a3b8;
-  }
-  .weather-card .w-desc {
-    font-size: 13px;
-    color: #94a3b8;
-    margin-top: 2px;
-  }
-  .weather-card .w-humidity {
-    font-size: 12px;
-    color: #64748b;
-    margin-top: 1px;
-  }
-  .weather-card .w-warning {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .weather-card .w-warning .badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    display: inline-block;
-  }
-  .weather-card .w-warning .badge.tc {
-    background: #ef4444;
-    color: #fff;
-  }
-  .weather-card .w-warning .badge.rain {
-    background: #eab308;
-    color: #0f172a;
-  }
-  .weather-card .w-warning .badge.hot {
-    background: #f97316;
-    color: #fff;
-  }
-  .weather-card .w-warning .badge.cold {
-    background: #60a5fa;
-    color: #0f172a;
-  }
-  .weather-card .w-warning .badge.other {
-    background: #64748b;
-    color: #fff;
-  }
-
   /* --- Stop Header --- */
-  .stop-name { text-align: center; margin-bottom: 14px; }
+  .stop-name { text-align: center; margin-bottom: 18px; }
   .stop-name .badge { font-size: 12px; color: #94a3b8; }
   .stop-name h1 { font-size: 20px; font-weight: 700; margin-top: 2px; }
   .stop-name .clock { font-size: 13px; color: #64748b; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
   /* --- Bus List --- */
-  .bus-list { display: flex; flex-direction: column; gap: 8px; }
+  .bus-list { display: flex; flex-direction: column; gap: 10px; }
   .bus-row {
     background: #1e293b;
     border-radius: 16px;
@@ -141,6 +70,7 @@
   .bus-row .eta .num.near   { color: #eab308; }
   .bus-row .eta .num.far    { color: #60a5fa; }
   .bus-row .eta .num.arriving { color: #22c55e; font-size: 18px; }
+  .bus-row .eta .num.none   { color: #475569; font-size: 16px; }
   .bus-row .eta .tag {
     font-size: 9px;
     font-weight: 700;
@@ -151,13 +81,65 @@
   }
   .bus-row .eta .tag.final { background: #eab308; color: #0f172a; }
 
-  .no-service { text-align: center; padding: 32px 0; }
-  .no-service .icon { font-size: 36px; margin-bottom: 6px; }
-  .no-service .msg { font-size: 16px; color: #64748b; font-weight: 600; }
+  /* --- Weather Card (bottom) --- */
+  .weather-card {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .weather-card .w-icon {
+    font-size: 40px;
+    width: 54px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .weather-card .w-info { flex: 1; }
+  .weather-card .w-temp {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .weather-card .w-temp .deg {
+    font-size: 18px;
+    font-weight: 400;
+    color: #94a3b8;
+  }
+  .weather-card .w-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .weather-card .w-humidity {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 1px;
+  }
+  .weather-card .w-warning {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .weather-card .w-warning .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .weather-card .w-warning .badge.tc    { background: #ef4444; color: #fff; }
+  .weather-card .w-warning .badge.rain  { background: #eab308; color: #0f172a; }
+  .weather-card .w-warning .badge.hot   { background: #f97316; color: #fff; }
+  .weather-card .w-warning .badge.cold  { background: #60a5fa; color: #0f172a; }
+  .weather-card .w-warning .badge.other { background: #64748b; color: #fff; }
 
   .status-bar {
     text-align: center;
-    margin-top: 16px;
+    margin-top: 12px;
     font-size: 11px;
     color: #475569;
     display: flex;
@@ -182,41 +164,29 @@
 
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
-    .weather-card { background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%); }
     .bus-row { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .weather-card { background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%); }
     .loading .spinner { border-color: #e2e8f0; border-top-color: #eab308; }
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <!-- Weather -->
-  <div id="weather">
-    <div class="weather-card">
-      <div class="w-icon"><span id="wIconEmoji">🌡️</span></div>
-      <div class="w-info">
-        <div class="w-temp"><span id="wTemp">--</span><span class="deg">°C</span></div>
-        <div class="w-desc" id="wDesc">載入中...</div>
-        <div class="w-humidity" id="wHumidity"></div>
-        <div class="w-warning" id="wWarnings"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stop -->
   <div class="stop-name">
     <div class="badge">🚏</div>
     <h1>醫療輔助總部</h1>
     <div class="clock" id="clock">--:--:--</div>
   </div>
 
-  <!-- Buses -->
   <div id="app">
     <div class="loading">
       <div class="spinner"></div>
       <div>正在獲取到站資料...</div>
     </div>
   </div>
+
+  <!-- Weather at the bottom -->
+  <div id="weather"></div>
 
   <div class="status-bar">
     <span id="status">載入中</span>
@@ -230,77 +200,71 @@ const BUS_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const WTH_API = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php';
 const HKTZ = 'Asia/Hong_Kong';
 
-const ROUTES = {
-  182: { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O' },
-  113: { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O' },
+const ROUTES = [
+  { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O' },
+  { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O' },
+];
+
+const WTH_EMOJI = {
+  50: '☀️', 51: '⛅', 52: '🌤️', 53: '☁️',
+  54: '🌦️', 55: '🌧️', 56: '🌧️', 57: '⛈️',
+  58: '⛈️', 59: '🌬️🌧️',
+  60: '🌙', 61: '🌙⛅', 62: '🌙⛅', 63: '☁️',
+  64: '🌙🌦️', 65: '🌙🌧️', 66: '🌙🌧️', 67: '🌙⛈️',
+  68: '🌙⛈️', 69: '🌙🌬️🌧️',
+};
+const WTH_DESC = {
+  50: '晴', 51: '間有陽光', 52: '短暫陽光', 53: '多雲',
+  54: '微雨', 55: '有雨', 56: '大雨', 57: '雷暴',
+  58: '雷暴+大雨', 59: '有雨+狂風',
+  60: '晴 (夜)', 61: '間有陽光 (夜)', 62: '短暫陽光 (夜)', 63: '多雲 (夜)',
+  64: '微雨 (夜)', 65: '有雨 (夜)', 66: '大雨 (夜)', 67: '雷暴 (夜)',
+  68: '雷暴+大雨 (夜)', 69: '有雨+狂風 (夜)',
 };
 
-// HKO weather icon → emoji
-  const WTH_EMOJI = {
-    50: '☀️', 51: '⛅', 52: '🌤️', 53: '☁️',
-    54: '🌦️', 55: '🌧️', 56: '🌧️', 57: '⛈️',
-    58: '⛈️', 59: '🌬️🌧️',
-    60: '🌙', 61: '🌙⛅', 62: '🌙⛅', 63: '☁️',
-    64: '🌙🌦️', 65: '🌙🌧️', 66: '🌙🌧️', 67: '🌙⛈️',
-    68: '🌙⛈️', 69: '🌙🌬️🌧️',
-  };
-  const WTH_DESC = {
-    50: '晴', 51: '間有陽光', 52: '短暫陽光', 53: '多雲',
-    54: '微雨', 55: '有雨', 56: '大雨', 57: '雷暴',
-    58: '雷暴+大雨', 59: '有雨+狂風',
-    60: '晴 (夜)', 61: '間有陽光 (夜)',
-    62: '短暫陽光 (夜)', 63: '多雲 (夜)', 64: '微雨 (夜)',
-    65: '有雨 (夜)', 66: '大雨 (夜)', 67: '雷暴 (夜)',
-    68: '雷暴+大雨 (夜)', 69: '有雨+狂風 (夜)',
-  };
-
-  function $(id) { return document.getElementById(id); }
+function $(id) { return document.getElementById(id); }
 
 // --- Weather ---
 async function fetchWeather() {
   const resp = await fetch(`${WTH_API}?dataType=rhrread&lang=tc`);
-  const d = await resp.json();
-  return d;
+  return await resp.json();
 }
 
 function renderWeather(d) {
-  // Find Kowloon City temp (closest to the bus stop)
   const kcTemp = d.temperature?.data?.find(t => t.place === 'Kowloon City');
   const temp = kcTemp?.value ?? d.temperature?.data?.[0]?.value ?? '--';
-
-  // Humidity
   const hum = d.humidity?.data?.[0];
   const humStr = hum ? `${hum.value}%` : '';
-
-  // Icon
   const icon = d.icon?.[0];
   const emoji = WTH_EMOJI[icon] || '🌡️';
   const desc = WTH_DESC[icon] || '';
-
-  // Warnings
   const warnings = d.warningMessage || [];
   const tcm = d.tcmessage || [];
 
-  $('wIconEmoji').textContent = emoji;
-  $('wTemp').textContent = temp;
-  $('wDesc').textContent = desc;
-  $('wHumidity').textContent = humStr ? `濕度 ${humStr}` : '';
-
-  // Warning badges
-  const wDiv = $('wWarnings');
   let wHtml = '';
   for (const w of warnings) {
     const cls = w.includes('熱帶氣旋') || w.includes('Cyclone') ? 'tc' :
                 w.includes('雷暴') || w.includes('Thunderstorm') || w.includes('rain') ? 'rain' :
                 w.includes('酷熱') || w.includes('Hot') ? 'hot' :
                 w.includes('寒冷') || w.includes('Cold') ? 'cold' : 'other';
-    const label = w.replace(/[^。！\n]*?[。！\n]/, '').trim() || w.split(/[。！]/)[0].trim() || w;
-    wHtml += `<span class="badge ${cls}">${label.slice(0, 40)}</span>`;
+    const label = w.split(/[。！]/)[0].trim() || w;
+    wHtml += `<span class="badge ${cls}">${label.slice(0, 36)}</span>`;
   }
   for (const t of tcm) {
-    wHtml += `<span class="badge tc">🌀 ${t.split('\n')[0].replace(/^Here is the /i,'').slice(0, 40)}</span>`;
+    const label = t.split('\n')[0].replace(/^Here is the /i, '').slice(0, 36);
+    wHtml += `<span class="badge tc">🌀 ${label}</span>`;
   }
-  wDiv.innerHTML = wHtml;
+
+  $('weather').innerHTML = `
+    <div class="weather-card">
+      <div class="w-icon">${emoji}</div>
+      <div class="w-info">
+        <div class="w-temp">${temp}<span class="deg">°C</span></div>
+        <div class="w-desc">${desc}</div>
+        ${humStr ? `<div class="w-humidity">濕度 ${humStr}</div>` : ''}
+        ${wHtml ? `<div class="w-warning">${wHtml}</div>` : ''}
+      </div>
+    </div>`;
 }
 
 // --- Buses ---
@@ -319,11 +283,11 @@ function formatETA(etaStr) {
 
 function renderBuses(allETAs) {
   const app = $('app');
-  const timeline = [];
+  let html = '<div class="bus-list">';
 
-  for (const [routeId, info] of Object.entries(ROUTES)) {
-    const routeETAs = (allETAs[routeId] || [])
-      .filter(e => e.dir === info.dir)
+  for (const rt of ROUTES) {
+    const routeETAs = (allETAs[rt.num] || [])
+      .filter(e => e.dir === rt.dir)
       .sort((a, b) => a.eta_seq - b.eta_seq);
 
     const isFinal = routeETAs.some(e =>
@@ -331,44 +295,49 @@ function renderBuses(allETAs) {
       (e.rmk_tc && e.rmk_tc.includes('最後班次'))
     );
 
+    // Find upcoming buses for this route
+    const upcoming = [];
     for (const e of routeETAs) {
       const f = formatETA(e.eta);
       if (!f) continue;
       if (f.cls === 'departed') continue;
-      timeline.push({
-        route: info,
-        etaStr: e.eta,
-        etaNum: f,
-        isFinal: isFinal && e.eta_seq === 1,
-      });
+      upcoming.push({ etaStr: e.eta, etaNum: f, isFinal: isFinal && e.eta_seq === 1 });
     }
-  }
 
-  timeline.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
-
-  if (timeline.length === 0) {
-    app.innerHTML = `<div class="no-service"><div class="icon">🌙</div><div class="msg">目前沒有班次</div></div>`;
-  } else {
-    let html = '<div class="bus-list">';
-    for (const t of timeline) {
+    if (upcoming.length === 0) {
+      // Show route card with "no service"
       html += `<div class="bus-row">
-        <div class="route-tag">${t.route.num}</div>
+        <div class="route-tag">${rt.num}</div>
         <div class="dest-info">
-          <div class="dest">${t.route.destTc}</div>
-          <div class="dest-sub">${t.route.destEn}</div>
+          <div class="dest">${rt.destTc}</div>
+          <div class="dest-sub">${rt.destEn}</div>
         </div>
         <div class="eta">
-          <div class="num ${t.etaNum.cls}">
-            ${t.etaNum.text}
-            ${t.etaNum.unit ? `<span class="unit">${t.etaNum.unit}</span>` : ''}
-          </div>
-          ${t.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
+          <div class="num none">🌙 沒有班次</div>
         </div>
       </div>`;
+    } else {
+      for (const u of upcoming) {
+        html += `<div class="bus-row">
+          <div class="route-tag">${rt.num}</div>
+          <div class="dest-info">
+            <div class="dest">${rt.destTc}</div>
+            <div class="dest-sub">${rt.destEn}</div>
+          </div>
+          <div class="eta">
+            <div class="num ${u.etaNum.cls}">
+              ${u.etaNum.text}
+              ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
+            </div>
+            ${u.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
+          </div>
+        </div>`;
+      }
     }
-    html += '</div>';
-    app.innerHTML = html;
   }
+
+  html += '</div>';
+  app.innerHTML = html;
 }
 
 async function fetchBusETA(route) {
@@ -380,23 +349,17 @@ async function fetchBusETA(route) {
 async function updateAll() {
   try {
     $('status').textContent = '更新中...';
-
     const [eta182, eta113, weather] = await Promise.all([
-      fetchBusETA('182'),
-      fetchBusETA('113'),
-      fetchWeather(),
+      fetchBusETA('182'), fetchBusETA('113'), fetchWeather(),
     ]);
-
     renderWeather(weather);
     renderBuses({ 182: eta182, 113: eta113 });
-
     const now = new Date();
     $('status').textContent = '✓ ' + now.toLocaleTimeString('zh-HK', {
       timeZone: HKTZ, hour: '2-digit', minute: '2-digit', hour12: false
     });
   } catch (e) {
     $('status').textContent = '❌ 錯誤';
-    // Don't blow up — weather might fail but buses still work
     console.error(e);
   }
 }
