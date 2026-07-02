@@ -11,10 +11,7 @@
     background: #0f172a;
     color: #f1f5f9;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    padding: 16px 20px;
   }
   .container { width: 100%; max-width: 440px; }
 
@@ -22,7 +19,7 @@
   .stop-name { text-align: center; margin-bottom: 16px; }
   .stop-name .badge { font-size: 14px; color: #94a3b8; }
   .stop-name h1 { font-size: 24px; font-weight: 700; margin-top: 2px; }
-  .stop-name .clock { font-size: 15px; color: #64748b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .stop-name .clock { font-size: 20px; color: #64748b; margin-top: 4px; font-variant-numeric: tabular-nums; }
 
   /* --- Title Banner --- */
   .title-banner {
@@ -406,7 +403,7 @@ async function updateAll() {
 function updateClock() {
   const now = new Date();
   $('clock').textContent = '🕐 ' + now.toLocaleTimeString('zh-HK', {
-    timeZone: HKTZ, hour: '2-digit', minute: '2-digit', hour12: false
+    timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
   });
 }
 
