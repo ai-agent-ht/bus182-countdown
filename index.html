@@ -258,8 +258,10 @@ function renderWeather(d) {
   // Only show tcmessage if a TC warning is actually active (skip stale bulletins)
   if (hasActiveTC) {
     for (const t of tcm) {
-      const label = t.split('\n')[0].replace(/^Here is the /i, '').slice(0, 36);
-      wHtml += `<span class="badge tc">🌀 ${label}</span>`;
+      // Extract storm name for a concise label instead of the full bulletin
+      const stormMatch = t.match(/熱帶風暴\S+/);
+      const stormName = stormMatch ? stormMatch[0] : '熱帶氣旋';
+      wHtml += `<span class="badge tc">🌀 ${stormName}</span>`;
     }
   }
 
