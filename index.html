@@ -259,7 +259,7 @@ function renderWeather(d) {
   if (hasActiveTC) {
     for (const t of tcm) {
       // Extract storm name for a concise label instead of the full bulletin
-      const stormMatch = t.match(/熱帶風暴\S+/);
+      const stormMatch = t.match(/熱帶風暴[\u4e00-\u9fff]{2,4}/);
       const stormName = stormMatch ? stormMatch[0] : '熱帶氣旋';
       wHtml += `<span class="badge tc">🌀 ${stormName}</span>`;
     }
