@@ -19,10 +19,34 @@
   .container { width: 100%; max-width: 440px; }
 
   /* --- Stop Header --- */
-  .stop-name { text-align: center; margin-bottom: 18px; }
+  .stop-name { text-align: center; margin-bottom: 16px; }
   .stop-name .badge { font-size: 14px; color: #94a3b8; }
   .stop-name h1 { font-size: 24px; font-weight: 700; margin-top: 2px; }
   .stop-name .clock { font-size: 15px; color: #64748b; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  /* --- Title Banner --- */
+  .title-banner {
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .title-banner .big-bus {
+    font-size: 48px;
+    display: block;
+    line-height: 1;
+  }
+  .title-banner h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: -4px;
+    letter-spacing: 1px;
+  }
+  @media (prefers-color-scheme: light) {
+    .title-banner { border-bottom-color: #e2e8f0; }
+    .title-banner h2 { color: #64748b; }
+  }
 
   /* --- Bus List --- */
   .bus-list { display: flex; flex-direction: column; gap: 10px; }
@@ -172,6 +196,11 @@
 </head>
 <body>
 <div class="container">
+  <div class="title-banner">
+    <span class="big-bus">🚏</span>
+    <h2>Leung's Bus Infoboard</h2>
+  </div>
+
   <div class="stop-name">
     <div class="badge">🚏</div>
     <h1>醫療輔助總部</h1>
