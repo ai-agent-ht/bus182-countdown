@@ -1,0 +1,9 @@
+{
+  "name": "bus182-countdown",
+  "short_name": "KMB 182",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#eab308",
+  "description": "KMB 巴士 182 號 愉翠苑→中環 即時到站時間"
+}

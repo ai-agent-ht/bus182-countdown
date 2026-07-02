@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMB 182 往中環 - 到站時間</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+  .container {
+    width: 100%;
+    max-width: 520px;
+  }
+  .header {
+    text-align: center;
+    padding: 20px 0 16px;
+    position: sticky;
+    top: 0;
+    background: #0f172a;
+    z-index: 10;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .header .sub {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+  }
+  .header .route-badge {
+    display: inline-block;
+    background: #eab308;
+    color: #0f172a;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  #clock {
+    font-size: 13px;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+  }
+  #status {
+    font-size: 12px;
+    color: #64748b;
+  }
+  .stop-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-bottom: 80px;
+  }
+  .stop-card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.3s;
+  }
+  .stop-card.highlight {
+    background: #334155;
+    border-left: 3px solid #eab308;
+  }
+  .stop-card .seq {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+  .stop-card .seq.first {
+    background: #22c55e;
+    color: #052e16;
+  }
+  .stop-card .seq.last {
+    background: #eab308;
+    color: #0f172a;
+  }
+  .stop-card .info {
+    flex: 1;
+    min-width: 0;
+  }
+  .stop-card .name {
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stop-card .name-en {
+    font-size: 11px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stop-card .eta {
+    text-align: right;
+    flex-shrink: 0;
+    min-width: 70px;
+  }
+  .stop-card .eta .time {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .stop-card .eta .time.due {
+    color: #22c55e;
+  }
+  .stop-card .eta .time.near {
+    color: #eab308;
+  }
+  .stop-card .eta .time.far {
+    color: #60a5fa;
+  }
+  .stop-card .eta .time.departed {
+    color: #ef4444;
+    font-size: 13px;
+  }
+  .stop-card .eta .time.no-data {
+    color: #64748b;
+    font-size: 13px;
+  }
+  .stop-card .eta .sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 1px;
+  }
+  .loading {
+    text-align: center;
+    padding: 60px 0;
+    color: #64748b;
+  }
+  .loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #334155;
+    border-top-color: #eab308;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ef4444;
+  }
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, #0f172a 40%);
+    padding: 16px 16px 20px;
+    text-align: center;
+    font-size: 11px;
+    color: #475569;
+  }
+  @media (prefers-color-scheme: light) {
+    body { background: #f8fafc; color: #1e293b; }
+    .header { background: #f8fafc; }
+    .stop-card { background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .stop-card.highlight { background: #fefce8; border-left-color: #eab308; }
+    .stop-card .seq { background: #e2e8f0; color: #64748b; }
+    .stop-card .seq.first { background: #22c55e; color: #fff; }
+    .stop-card .seq.last { background: #eab308; color: #fff; }
+    .footer { background: linear-gradient(transparent, #f8fafc 40%); }
+    .loading .spinner { border-color: #e2e8f0; border-top-color: #eab308; }
+  }
+
+  /* Collapse non-relevant stops on mobile */
+  @media (max-width: 400px) {
+    .stop-card.condensed .name-en { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="route-badge">KMB 182</div>
+    <h1>愉翠苑 → 中環(港澳碼頭)</h1>
+    <div class="sub">
+      <span id="clock">--:--:--</span>
+      <span id="status">載入中...</span>
+    </div>
+  </div>
+  <div id="app">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>正在獲取巴士到站資料...</div>
+    </div>
+  </div>
+  <div class="footer">數據來源: data.gov.hk (KMB) · 每30秒更新</div>
+</div>
+
+<script>
+// Route 182 O (towards Central) stop IDs
+const STOP_IDS = [
+  "EF15FBC5E8A02ADA","CF75BC81CDF3D411","896D3C4F7F91E9C9","C6F406D78E5C515A",
+  "0ABE48106C953AC9","66BF94751BD28BAD","3D5F8A471AE2AE99","6FA31E38468068B6",
+  "5C6B22551FFEB285","CAE09A3D7E2BE997","4E366AF78461E12D","AD0E19B05666A22B",
+  "C7C1C12D89968698","2431FF3100478DEE","ED6FCB0422D541F5","850F72123F644500",
+  "3821D64D2BF1BB66","66C6FDFC88F56E51","7CD8F96A087CDDF2","5029C93BB80545B1",
+  "A70C52925AAF4A1E","182976403F291FE0","82F385AE99820D83","B4BC12D061EC853E",
+  "6ACA5143BB7C496B","DD5CDB226E98FD0B","67387941757BB9DC","59013D693D2493FE"
+];
+
+const API_BASE = 'https://data.etabus.gov.hk/v1/transport/kmb';
+const HKTZ = 'Asia/Hong_Kong';
+
+let stopsData = [];       // { id, seq, nameTc, nameEn }
+let updateTimer = null;
+let clockTimer = null;
+
+function $(id) { return document.getElementById(id); }
+
+// --- Clock ---
+function updateClock() {
+  const now = new Date();
+  const opts = { timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  $('clock').textContent = '🕐 ' + now.toLocaleTimeString('zh-HK', opts);
+  if (now.getHours() >= 0 && now.getHours() < 5 && !window._nightWarned) {
+    window._nightWarned = true;
+  }
+}
+
+// --- Fetch stop names ---
+async function fetchStopNames() {
+  const results = await Promise.all(
+    STOP_IDS.map(id =>
+      fetch(`${API_BASE}/stop/${id}`).then(r => r.json()).catch(() => null)
+    )
+  );
+  stopsData = results
+    .map((d, i) => {
+      if (!d || !d.data) return null;
+      return {
+        id: d.data.stop,
+        seq: i + 1,
+        nameTc: d.data.name_tc,
+        nameEn: d.data.name_en
+      };
+    })
+    .filter(Boolean);
+  return stopsData;
+}
+
+// --- Fetch route ETA (both directions) ---
+async function fetchRouteETA() {
+  const resp = await fetch(`${API_BASE}/route-eta/182/1`);
+  const data = await resp.json();
+  if (!data.data) return [];
+  // Filter for direction O (towards Central)
+  return data.data.filter(e => e.dir === 'O' && e.service_type === 1);
+}
+
+// --- Compute countdown string ---
+function formatETA(etaStr) {
+  if (!etaStr) return { text: '--', cls: 'no-data', sub: '' };
+  const now = new Date();
+  const etaDate = new Date(etaStr);
+  const diffMs = etaDate - now;
+  const diffSec = Math.floor(diffMs / 1000);
+
+  if (diffSec < -120) return { text: '已開出', cls: 'departed', sub: '' };
+  if (diffSec < 0) return { text: '即將到站', cls: 'due', sub: '' };
+  if (diffSec < 60) return { text: '即將到站', cls: 'due', sub: '' };
+
+  const mins = Math.floor(diffSec / 60);
+  const secs = diffSec % 60;
+
+  let cls;
+  if (mins <= 2) cls = 'due';
+  else if (mins <= 5) cls = 'near';
+  else cls = 'far';
+
+  // Format as "5" or "15" (just minutes for longer ones)
+  if (mins >= 10) {
+    return { text: `${mins}`, cls, sub: '分鐘' };
+  }
+  return { text: `${mins}:${String(secs).padStart(2, '0')}`, cls, sub: '' };
+}
+
+// --- Render ---
+function render(etaData) {
+  const app = $('app');
+  if (!stopsData.length) {
+    app.innerHTML = '<div class="loading"><div class="spinner"></div><div>載入中...</div></div>';
+    return;
+  }
+
+  // Build ETA lookup: stop_id -> best ETA
+  const etaMap = {};
+  for (const e of etaData) {
+    const key = `${e.seq}`;
+    if (!etaMap[key] || (e.eta && (!etaMap[key].eta || e.eta < etaMap[key].eta))) {
+      etaMap[key] = e;
+    }
+  }
+
+  // Also get the next bus ETA (eta_seq > 1)
+  const etaQueue = {};
+  for (const e of etaData) {
+    const key = `${e.seq}`;
+    if (!etaQueue[key]) etaQueue[key] = [];
+    etaQueue[key].push(e);
+  }
+
+  let html = '<div class="stop-list">';
+  for (const s of stopsData) {
+    const etas = etaQueue[`${s.seq}`] || [];
+    const primary = etas.find(e => e.eta_seq === 1);
+    const secondary = etas.find(e => e.eta_seq === 2);
+
+    const f1 = formatETA(primary?.eta);
+    const f2 = formatETA(secondary?.eta);
+
+    const isFirst = s.seq === 1;
+    const isLast = s.seq === stopsData.length;
+
+    // Check if bus is approaching this stop (within 5 min)
+    const isRelevant = [
+      { seq: s.seq >= 1 ? s.seq : 1 }, // always show
+    ];
+
+    const seqCls = isFirst ? 'first' : isLast ? 'last' : '';
+
+    // Remove "(STxxx)" suffix for cleaner display
+    let nameTc = s.nameTc.replace(/\s*\(ST\d+\)$/, '');
+    let nameEn = s.nameEn.replace(/\s*\(ST\d+\)$/, '');
+    // Remove bus stop number
+    nameEn = nameEn.replace(/,$/, '');
+
+    const highlight = f1.cls === 'due' || f1.cls === 'near';
+
+    html += `
+      <div class="stop-card${highlight ? ' highlight' : ''}">
+        <div class="seq ${seqCls}">${s.seq}</div>
+        <div class="info">
+          <div class="name">${nameTc}</div>
+          <div class="name-en">${nameEn}</div>
+        </div>
+        <div class="eta">
+          <div class="time ${f1.cls}">${f1.text}</div>
+          ${f1.sub ? `<div class="sub">${f1.sub}</div>` : ''}
+          ${f2.cls !== 'no-data' ? `<div class="sub" style="color:#94a3b8;font-size:11px;margin-top:2px">下一班 ${f2.text}${f2.sub}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  html += '</div>';
+  app.innerHTML = html;
+  $('status').textContent = `最後更新: ${new Date().toLocaleTimeString('zh-HK', { timeZone: HKTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`;
+}
+
+// --- Main update cycle ---
+async function update() {
+  try {
+    $('status').textContent = '更新中...';
+    const [etaData] = await Promise.all([fetchRouteETA()]);
+    render(etaData);
+  } catch (e) {
+    $('app').innerHTML = `
+      <div class="error-msg">
+        <div style="font-size:40px;margin-bottom:12px">😵</div>
+        <div>無法獲取到站資料</div>
+        <div style="font-size:12px;margin-top:8px;color:#64748b">${e.message}</div>
+        <button onclick="update()" style="margin-top:12px;padding:8px 24px;border-radius:8px;border:none;background:#eab308;color:#0f172a;font-weight:600;cursor:pointer">重試</button>
+      </div>
+    `;
+    $('status').textContent = '載入失敗';
+  }
+}
+
+// --- Init ---
+async function init() {
+  await fetchStopNames();
+  await update();
+  updateTimer = setInterval(update, 30000);
+  clockTimer = setInterval(updateClock, 1000);
+  updateClock();
+}
+
+// --- Service worker for offline / caching ---
+if ('serviceWorker' in navigator) {
+  // Optional: could add offline support
+}
+
+init();
+</script>
+</body>
+</html>
