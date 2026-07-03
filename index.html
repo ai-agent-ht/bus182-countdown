@@ -67,6 +67,9 @@
     flex-shrink: 0;
     letter-spacing: 1px;
   }
+  /* Route-specific tag colors */
+  .bus-row .route-tag.r182 { background: #eab308; }
+  .bus-row .route-tag.r113 { background: #a855f7; }
   .bus-row .dest-info { flex: 1; min-width: 0; }
   .bus-row .dest-info .dest {
     font-size: 16px;
@@ -87,10 +90,11 @@
     line-height: 1;
   }
   .bus-row .eta .num .unit { font-size: 16px; font-weight: 600; margin-left: 2px; }
-  .bus-row .eta .num.due    { color: #22c55e; }
-  .bus-row .eta .num.near   { color: #eab308; }
-  .bus-row .eta .num.far    { color: #60a5fa; }
-  .bus-row .eta .num.arriving { color: #22c55e; font-size: 20px; }
+  .bus-row .eta .num.due    { color: #ef4444; }  /* <=2 min → red */
+  .bus-row .eta .num.near   { color: #eab308; }  /* <=5 min → yellow */
+  .bus-row .eta .num.far    { color: #22c55e; }  /* <=10 min → green */
+  .bus-row .eta .num.away   { color: #60a5fa; }  /* >10 min → blue */
+  .bus-row .eta .num.arriving { color: #ef4444; font-size: 20px; }
   .bus-row .eta .num.none   { color: #475569; font-size: 18px; }
   .bus-row .eta .tag {
     font-size: 9px;
@@ -106,50 +110,54 @@
   .weather-card {
     background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
     border-radius: 20px;
-    padding: 16px 20px;
+    padding: 18px 22px;
     margin-top: 16px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
   }
   .weather-card .w-icon {
-    font-size: 40px;
-    width: 54px;
+    width: 72px;
     text-align: center;
     flex-shrink: 0;
   }
+  .weather-card .w-icon img {
+    width: 64px;
+    height: 64px;
+    display: block;
+  }
   .weather-card .w-info { flex: 1; }
   .weather-card .w-temp {
-    font-size: 32px;
+    font-size: 40px;
     font-weight: 700;
     line-height: 1;
   }
   .weather-card .w-temp .deg {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 400;
     color: #94a3b8;
   }
   .weather-card .w-desc {
-    font-size: 15px;
+    font-size: 18px;
     color: #94a3b8;
     margin-top: 2px;
   }
   .weather-card .w-humidity {
-    font-size: 14px;
+    font-size: 16px;
     color: #64748b;
-    margin-top: 1px;
+    margin-top: 2px;
   }
   .weather-card .w-warning {
-    margin-top: 6px;
+    margin-top: 8px;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
   }
   .weather-card .w-warning .badge {
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 3px 10px;
+    border-radius: 5px;
     display: inline-block;
   }
   .weather-card .w-warning .badge.tc    { background: #ef4444; color: #fff; }
@@ -265,7 +273,7 @@ function renderWeather(d) {
   const hum = d.humidity?.data?.[0];
   const humStr = hum ? `${hum.value}%` : '';
   const icon = d.icon?.[0];
-  const emoji = WTH_EMOJI[icon] || '🌡️';
+  const iconUrl = icon ? `https://www.weather.gov.hk/images/HKOWxIconOutline/pic${icon}.png` : '';
   const desc = WTH_DESC[icon] || '';
   const warnings = d.warningMessage || [];
   const tcm = d.tcmessage || [];
@@ -303,7 +311,7 @@ function renderWeather(d) {
 
   $('weather').innerHTML = `
     <div class="weather-card">
-      <div class="w-icon">${emoji}</div>
+      <div class="w-icon">${iconUrl ? `<img src="${iconUrl}" alt="${desc}">` : '🌡️'}</div>
       <div class="w-info">
         <div class="w-temp">${temp}<span class="deg">°C</span></div>
         <div class="w-desc">${desc}</div>
@@ -322,7 +330,7 @@ function formatETA(etaStr) {
   if (diffSec < -120) return { text: '已開出', cls: 'departed' };
   if (diffSec <= 60) return { text: '即將到站', cls: 'arriving' };
   const mins = Math.floor(diffSec / 60);
-  const cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : 'far';
+  const cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : mins <= 10 ? 'far' : 'away';
   const txt = mins >= 10 ? `${mins}` : `${mins}:${String(diffSec % 60).padStart(2, '0')}`;
   return { text: txt, cls, unit: '分鐘' };
 }
@@ -366,7 +374,7 @@ function renderBuses(allETAs) {
   } else {
     for (const u of allUpcoming) {
       html += `<div class="bus-row">
-        <div class="route-tag">${u.route}</div>
+        <div class="route-tag r${u.route}">${u.route}</div>
         <div class="dest-info">
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
