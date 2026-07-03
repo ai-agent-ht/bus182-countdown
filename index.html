@@ -412,15 +412,35 @@ function renderBuses(allETAs) {
 
   const cfg = TABS[activeTab];
   const allUpcoming = [];
+  let hasAnyRouteData = false;
 
   for (const rt of cfg.routes) {
     const routeETAs = (allETAs[rt.num] || [])
       .filter(e => e.dir === rt.dir);
 
+    if (routeETAs.length > 0) hasAnyRouteData = true;
+
     const isFinalRoute = routeETAs.some(e =>
       (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) ||
       (e.rmk_tc && e.rmk_tc.includes('最後班次'))
     );
+
+    // Check if any ETAs for this route have valid timestamps
+    const hasValidETA = routeETAs.some(e => e.eta !== null && e.eta !== undefined);
+
+    if (!hasValidETA && routeETAs.length > 0) {
+      // Route exists but no real-time ETA yet — show placeholder
+      html += `<div class="bus-row">
+        <div class="route-tag r${rt.num}">${rt.num}</div>
+        <div class="dest-info">
+          <div class="dest">${rt.destTc}</div>
+          <div class="dest-sub">${rt.destEn}</div>
+        </div>
+        <div class="eta">
+          <div class="num none">稍後有車</div>
+        </div>
+      </div>`;
+    }
 
     for (const e of routeETAs) {
       const f = formatETA(e.eta);
@@ -439,11 +459,15 @@ function renderBuses(allETAs) {
     }
   }
 
-  allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
-
   if (allUpcoming.length === 0) {
-    html += '<div class="bus-row" style="justify-content:center;padding:24px 20px"><div class="num none" style="text-align:center">🌙 沒有班次</div></div>';
+    if (!hasAnyRouteData) {
+      // Nothing returned from API at all — show no-service message
+      html += '<div class="bus-row" style="justify-content:center;padding:24px 20px"><div class="num none" style="text-align:center">🌙 沒有班次</div></div>';
+    }
+    // else: placeholder rows (稍後有車) already added above
   } else {
+    // Sort upcoming buses and render them
+    allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
     for (const u of allUpcoming) {
       html += `<div class="bus-row">
         <div class="route-tag r${u.route}">${u.route}</div>
