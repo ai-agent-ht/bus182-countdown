@@ -281,16 +281,23 @@ function renderWeather(d) {
                 w.includes('雷暴') || w.includes('Thunderstorm') || w.includes('rain') ? 'rain' :
                 w.includes('酷熱') || w.includes('Hot') ? 'hot' :
                 w.includes('寒冷') || w.includes('Cold') ? 'cold' : 'other';
-    const label = w.split(/[。！]/)[0].trim() || w;
-    wHtml += `<span class="badge ${cls}">${label.slice(0, 36)}</span>`;
+    // Compact symbols instead of long text
+    let label = '';
+    if (w.includes('熱帶氣旋') || w.includes('Cyclone')) label = '🌀 No.1';
+    else if (w.includes('雷暴') || w.includes('Thunderstorm')) label = '⛈️ 雷暴';
+    else if (w.includes('酷熱') || w.includes('Hot')) label = '🔥 酷熱';
+    else if (w.includes('寒冷') || w.includes('Cold')) label = '❄️ 寒冷';
+    else if (w.includes('暴雨') || w.includes('rain')) label = '🌧️ 暴雨';
+    else label = w.split(/[。！]/)[0].trim().slice(0, 20) || w;
+    wHtml += `<span class="badge ${cls}">${label}</span>`;
   }
   // Only show tcmessage if a TC warning is actually active (skip stale bulletins)
   if (hasActiveTC) {
     for (const t of tcm) {
-      // Extract storm name for a concise label instead of the full bulletin
-      const stormMatch = t.match(/熱帶風暴[\u4e00-\u9fff]{2,3}/);
-      const stormName = stormMatch ? stormMatch[0] : '熱帶氣旋';
-      wHtml += `<span class="badge tc">🌀 ${stormName}</span>`;
+      // Concise: just the signal number + storm icon
+      const sigMatch = t.match(/信號[０-９]*號/);
+      const sig = sigMatch ? sigMatch[0] : '';
+      wHtml += `<span class="badge tc">🌀 ${sig || 'TC'}</span>`;
     }
   }
 
@@ -324,55 +331,54 @@ function renderBuses(allETAs) {
   const app = $('app');
   let html = '<div class="bus-list">';
 
+  // Collect all upcoming buses across all routes, sorted by ETA
+  const allUpcoming = [];
   for (const rt of ROUTES) {
     const routeETAs = (allETAs[rt.num] || [])
-      .filter(e => e.dir === rt.dir)
-      .sort((a, b) => a.eta_seq - b.eta_seq);
+      .filter(e => e.dir === rt.dir);
 
-    const isFinal = routeETAs.some(e =>
+    const isFinalRoute = routeETAs.some(e =>
       (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) ||
       (e.rmk_tc && e.rmk_tc.includes('最後班次'))
     );
 
-    // Show up to MAX_BUSES_PER_ROUTE upcoming buses
-    const shown = [];
     for (const e of routeETAs) {
       const f = formatETA(e.eta);
       if (!f) continue;
-      if (f.cls === 'departed') continue;   // totally gone
-      shown.push({ etaStr: e.eta, etaNum: f, isFinal: isFinal && e.eta_seq === 1 });
-      if (shown.length >= MAX_BUSES_PER_ROUTE) break;
+      if (f.cls === 'departed') continue;
+      allUpcoming.push({
+        route: rt.num,
+        destTc: rt.destTc,
+        destEn: rt.destEn,
+        etaStr: e.eta,
+        etaNum: f,
+        isFinal: isFinalRoute && e.eta_seq === 1,
+      });
+      if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * ROUTES.length) break;
     }
+  }
 
-    if (shown.length === 0) {
-      // Show route card with "no service"
+  // Sort by ETA — nearest bus first
+  allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
+
+  if (allUpcoming.length === 0) {
+    html += `<div class="bus-row"><div class="eta"><div class="num none" style="text-align:center;width:100%">🌙 沒有班次</div></div></div>`;
+  } else {
+    for (const u of allUpcoming) {
       html += `<div class="bus-row">
-        <div class="route-tag">${rt.num}</div>
+        <div class="route-tag">${u.route}</div>
         <div class="dest-info">
-          <div class="dest">${rt.destTc}</div>
-          <div class="dest-sub">${rt.destEn}</div>
+          <div class="dest">${u.destTc}</div>
+          <div class="dest-sub">${u.destEn}</div>
         </div>
         <div class="eta">
-          <div class="num none">🌙 沒有班次</div>
+          <div class="num ${u.etaNum.cls}">
+            ${u.etaNum.text}
+            ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
+          </div>
+          ${u.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
         </div>
       </div>`;
-    } else {
-      for (const u of shown) {
-        html += `<div class="bus-row">
-          <div class="route-tag">${rt.num}</div>
-          <div class="dest-info">
-            <div class="dest">${rt.destTc}</div>
-            <div class="dest-sub">${rt.destEn}</div>
-          </div>
-          <div class="eta">
-            <div class="num ${u.etaNum.cls}">
-              ${u.etaNum.text}
-              ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
-            </div>
-            ${u.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
-          </div>
-        </div>`;
-      }
     }
   }
 
