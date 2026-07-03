@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>巴士到站 + 天氣 - 醫療輔助總部</title>
+<title>Leung's Bus Infoboard</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -15,17 +15,11 @@
   }
   .container { width: 100%; max-width: 440px; }
 
-  /* --- Stop Header --- */
-  .stop-name { text-align: center; margin-bottom: 16px; }
-  .stop-name .badge { font-size: 14px; color: #94a3b8; }
-  .stop-name h1 { font-size: 24px; font-weight: 700; margin-top: 2px; }
-  .stop-name .clock { font-size: 32px; color: #64748b; margin-top: 4px; font-variant-numeric: tabular-nums; font-weight: 700; }
-
   /* --- Title Banner --- */
   .title-banner {
     text-align: center;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid #1e293b;
   }
   .title-banner .big-bus {
@@ -40,6 +34,37 @@
     margin-top: -4px;
     letter-spacing: 1px;
   }
+
+  /* --- Tab Bar --- */
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab-bar .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #1e293b;
+    color: #64748b;
+    transition: all 0.2s;
+    border: none;
+  }
+  .tab-bar .tab.active {
+    background: #eab308;
+    color: #0f172a;
+  }
+
+  /* --- Stop Header --- */
+  .stop-name { text-align: center; margin-bottom: 14px; }
+  .stop-name .badge { font-size: 14px; color: #94a3b8; }
+  .stop-name h1 { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .stop-name .clock { font-size: 32px; color: #64748b; margin-top: 4px; font-variant-numeric: tabular-nums; font-weight: 700; }
+
   @media (prefers-color-scheme: light) {
     .title-banner { border-bottom-color: #e2e8f0; }
     .title-banner h2 { color: #64748b; }
@@ -56,8 +81,7 @@
     gap: 14px;
   }
   .bus-row .route-tag {
-    background: #eab308;
-    color: #0f172a;
+    color: #fff;
     font-size: 24px;
     font-weight: 800;
     padding: 6px 12px;
@@ -68,8 +92,9 @@
     letter-spacing: 1px;
   }
   /* Route-specific tag colors */
-  .bus-row .route-tag.r182 { background: #06b6d4; color: #fff; }  /* cyan, distinct from all ETA colors */
-  .bus-row .route-tag.r113 { background: #f97316; color: #fff; }  /* orange, high contrast */
+  .bus-row .route-tag.r182 { background: #06b6d4; }
+  .bus-row .route-tag.r113 { background: #f97316; }
+  .bus-row .route-tag.r109 { background: #8b5cf6; }
   .bus-row .dest-info { flex: 1; min-width: 0; }
   .bus-row .dest-info .dest {
     font-size: 16px;
@@ -90,10 +115,10 @@
     line-height: 1;
   }
   .bus-row .eta .num .unit { font-size: 16px; font-weight: 600; margin-left: 2px; }
-  .bus-row .eta .num.due    { color: #ef4444; }  /* <=2 min → red */
-  .bus-row .eta .num.near   { color: #eab308; }  /* <=5 min → yellow */
-  .bus-row .eta .num.far    { color: #22c55e; }  /* <=10 min → green */
-  .bus-row .eta .num.away   { color: #60a5fa; }  /* >10 min → blue */
+  .bus-row .eta .num.due    { color: #ef4444; }
+  .bus-row .eta .num.near   { color: #eab308; }
+  .bus-row .eta .num.far    { color: #22c55e; }
+  .bus-row .eta .num.away   { color: #60a5fa; }
   .bus-row .eta .num.arriving { color: #ef4444; font-size: 20px; }
   .bus-row .eta .num.none   { color: #475569; font-size: 18px; }
   .bus-row .eta .tag {
@@ -106,7 +131,7 @@
   }
   .bus-row .eta .tag.final { background: #eab308; color: #0f172a; }
 
-  /* --- Weather Card (bottom) --- */
+  /* --- Weather --- */
   .weather-card {
     background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
     border-radius: 20px;
@@ -175,7 +200,6 @@
     justify-content: center;
     gap: 12px;
   }
-
   .error-msg { text-align: center; padding: 40px 20px; color: #ef4444; }
   .error-msg button {
     margin-top: 12px; padding: 10px 28px; border-radius: 12px;
@@ -194,6 +218,8 @@
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
     .bus-row { background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .tab-bar .tab { background: #e2e8f0; color: #64748b; }
+    .tab-bar .tab.active { background: #eab308; color: #0f172a; }
     .weather-card { background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%); }
     .loading .spinner { border-color: #e2e8f0; border-top-color: #eab308; }
   }
@@ -206,9 +232,14 @@
     <h2>Leung's Bus Infoboard</h2>
   </div>
 
+  <div class="tab-bar" id="tabBar">
+    <button class="tab active" data-tab="morning">🌅 上午</button>
+    <button class="tab" data-tab="afternoon">🌆 下午</button>
+  </div>
+
   <div class="stop-name">
     <div class="badge">🚏</div>
-    <h1>醫療輔助總部</h1>
+    <h1 id="stopName">醫療輔助總部</h1>
     <div class="clock" id="clock">--:--:--</div>
   </div>
 
@@ -219,7 +250,6 @@
     </div>
   </div>
 
-  <!-- Weather at the bottom -->
   <div id="weather"></div>
 
   <div class="status-bar">
@@ -229,27 +259,35 @@
 </div>
 
 <script>
-const STOP_ID = '66C6FDFC88F56E51';
 const BUS_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const WTH_API = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php';
 const HKTZ = 'Asia/Hong_Kong';
-
-const ROUTES = [
-  { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O' },
-  { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O' },
-];
 const MAX_BUSES_PER_ROUTE = 2;
 
-let cachedETAs = {};   // stores last fetched ETA data for live countdown
-
-const WTH_EMOJI = {
-  50: '☀️', 51: '⛅', 52: '🌤️', 53: '☁️',
-  54: '🌦️', 55: '🌧️', 56: '🌧️', 57: '⛈️',
-  58: '⛈️', 59: '🌬️🌧️',
-  60: '🌙', 61: '🌙⛅', 62: '🌙⛅', 63: '☁️',
-  64: '🌙🌦️', 65: '🌙🌧️', 66: '🌙🌧️', 67: '🌙⛈️',
-  68: '🌙⛈️', 69: '🌙🌬️🌧️',
+// --- Tab configs ---
+const TABS = {
+  morning: {
+    label: '🌅 上午',
+    stopName: '醫療輔助總部',
+    routes: [
+      { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
+      { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
+    ],
+  },
+  afternoon: {
+    label: '🌆 下午',
+    stopName: '皇后像廣場',
+    routes: [
+      { num: '109', destTc: '何文田', destEn: 'HO MAN TIN', dir: 'I', stopId: 'C0B0B597A9C896F7' },
+      { num: '113', destTc: '彩虹', destEn: 'CHOI HUNG', dir: 'I', stopId: 'C0B0B597A9C896F7' },
+      { num: '182', destTc: '愉翠苑', destEn: 'YU CHUI COURT', dir: 'I', stopId: 'A9069A17B1474D76' },
+    ],
+  },
 };
+
+let activeTab = 'morning';
+let cachedETAs = {};
+
 const WTH_DESC = {
   50: '晴', 51: '間有陽光', 52: '短暫陽光', 53: '多雲',
   54: '微雨', 55: '有雨', 56: '大雨', 57: '雷暴',
@@ -260,6 +298,19 @@ const WTH_DESC = {
 };
 
 function $(id) { return document.getElementById(id); }
+
+// --- Tab switching ---
+function switchTab(tabName) {
+  activeTab = tabName;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+  $('stopName').textContent = TABS[tabName].stopName;
+  updateAll();
+}
+
+document.getElementById('tabBar').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (tab && tab.dataset.tab !== activeTab) switchTab(tab.dataset.tab);
+});
 
 // --- Weather ---
 async function fetchWeather() {
@@ -278,7 +329,6 @@ function renderWeather(d) {
   const warnings = d.warningMessage || [];
   const tcm = d.tcmessage || [];
 
-  // Only show TC bulletin if there's an active TC warning
   const hasActiveTC = warnings.some(w =>
     w.includes('熱帶氣旋') || w.includes('Cyclone') || w.includes('Signal')
   );
@@ -289,7 +339,6 @@ function renderWeather(d) {
                 w.includes('雷暴') || w.includes('Thunderstorm') || w.includes('rain') ? 'rain' :
                 w.includes('酷熱') || w.includes('Hot') ? 'hot' :
                 w.includes('寒冷') || w.includes('Cold') ? 'cold' : 'other';
-    // Compact symbols instead of long text
     let label = '';
     if (w.includes('熱帶氣旋') || w.includes('Cyclone')) label = '🌀 No.1';
     else if (w.includes('雷暴') || w.includes('Thunderstorm')) label = '⛈️ 雷暴';
@@ -299,10 +348,8 @@ function renderWeather(d) {
     else label = w.split(/[。！]/)[0].trim().slice(0, 20) || w;
     wHtml += `<span class="badge ${cls}">${label}</span>`;
   }
-  // Only show tcmessage if a TC warning is actually active (skip stale bulletins)
   if (hasActiveTC) {
     for (const t of tcm) {
-      // Concise: just the signal number + storm icon
       const sigMatch = t.match(/信號[０-９]*號/);
       const sig = sigMatch ? sigMatch[0] : '';
       wHtml += `<span class="badge tc">🌀 ${sig || 'TC'}</span>`;
@@ -339,9 +386,10 @@ function renderBuses(allETAs) {
   const app = $('app');
   let html = '<div class="bus-list">';
 
-  // Collect all upcoming buses across all routes, sorted by ETA
+  const cfg = TABS[activeTab];
   const allUpcoming = [];
-  for (const rt of ROUTES) {
+
+  for (const rt of cfg.routes) {
     const routeETAs = (allETAs[rt.num] || [])
       .filter(e => e.dir === rt.dir);
 
@@ -362,15 +410,14 @@ function renderBuses(allETAs) {
         etaNum: f,
         isFinal: isFinalRoute && e.eta_seq === 1,
       });
-      if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * ROUTES.length) break;
+      if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * cfg.routes.length) break;
     }
   }
 
-  // Sort by ETA — nearest bus first
   allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
 
   if (allUpcoming.length === 0) {
-    html += `<div class="bus-row"><div class="eta"><div class="num none" style="text-align:center;width:100%">🌙 沒有班次</div></div></div>`;
+    html += '<div class="bus-row"><div class="eta"><div class="num none" style="text-align:center;width:100%">🌙 沒有班次</div></div></div>';
   } else {
     for (const u of allUpcoming) {
       html += `<div class="bus-row">
@@ -394,8 +441,8 @@ function renderBuses(allETAs) {
   app.innerHTML = html;
 }
 
-async function fetchBusETA(route) {
-  const resp = await fetch(`${BUS_API}/eta/${STOP_ID}/${route}/${1}`);
+async function fetchBusETA(stopId, route) {
+  const resp = await fetch(`${BUS_API}/eta/${stopId}/${route}/${1}`);
   const data = await resp.json();
   return data.data || [];
 }
@@ -403,12 +450,18 @@ async function fetchBusETA(route) {
 async function updateAll() {
   try {
     $('status').textContent = '更新中...';
-    const [eta182, eta113, weather] = await Promise.all([
-      fetchBusETA('182'), fetchBusETA('113'), fetchWeather(),
-    ]);
-    cachedETAs = { 182: eta182, 113: eta113 };
+    const cfg = TABS[activeTab];
+    const fetches = cfg.routes.map(rt => fetchBusETA(rt.stopId, rt.num));
+    const results = await Promise.all([...fetches, fetchWeather()]);
+    const weather = results[results.length - 1];
+
+    const etaMap = {};
+    cfg.routes.forEach((rt, i) => { etaMap[rt.num] = results[i]; });
+    cachedETAs = etaMap;
+
     renderWeather(weather);
     renderBuses(cachedETAs);
+
     const now = new Date();
     $('status').textContent = '✓ ' + now.toLocaleTimeString('zh-HK', {
       timeZone: HKTZ, hour: '2-digit', minute: '2-digit', hour12: false
@@ -419,7 +472,6 @@ async function updateAll() {
   }
 }
 
-// Live countdown — re-render from cached data every 5s so ETAs tick in real time
 function tickCountdown() {
   renderBuses(cachedETAs);
 }
@@ -433,9 +485,9 @@ function updateClock() {
 
 async function init() {
   await updateAll();
-  setInterval(updateAll, 30000);    // fresh data every 30s
-  setInterval(tickCountdown, 5000); // live countdown every 5s
-  setInterval(updateClock, 1000);   // clock every 1s
+  setInterval(updateAll, 30000);
+  setInterval(tickCountdown, 5000);
+  setInterval(updateClock, 1000);
   updateClock();
 }
 
