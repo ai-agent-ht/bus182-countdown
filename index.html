@@ -431,7 +431,7 @@ function renderBuses(allETAs) {
 
   for (const rt of cfg.routes) {
     const routeETAs = (allETAs[rt.num] || [])
-      .filter(e => e.dir === rt.dir);
+      .filter(e => e.dir === rt.dir || e.dir === rt.ctbDir);
 
     if (routeETAs.length > 0) hasAnyRouteData = true;
 
