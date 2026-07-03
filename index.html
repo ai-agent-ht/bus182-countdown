@@ -285,8 +285,9 @@ const TABS = {
   },
 };
 
-// Auto-select tab based on time of day
-const DEFAULT_TAB = new Date().getHours() < 12 ? 'morning' : 'afternoon';
+// Auto-select tab based on Hong Kong time
+const HK_HOUR = parseInt(new Date().toLocaleString('en-US', { timeZone: HKTZ, hour: 'numeric', hour12: false }), 10);
+const DEFAULT_TAB = HK_HOUR < 12 ? 'morning' : 'afternoon';
 let activeTab = DEFAULT_TAB;
 let cachedETAs = {};
 
