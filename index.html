@@ -233,7 +233,7 @@
   </div>
 
   <div class="tab-bar" id="tabBar">
-    <button class="tab active" data-tab="morning">🌅 上午</button>
+    <button class="tab" data-tab="morning">🌅 上午</button>
     <button class="tab" data-tab="afternoon">🌆 下午</button>
   </div>
 
@@ -285,7 +285,9 @@ const TABS = {
   },
 };
 
-let activeTab = 'morning';
+// Auto-select tab based on time of day
+const DEFAULT_TAB = new Date().getHours() < 12 ? 'morning' : 'afternoon';
+let activeTab = DEFAULT_TAB;
 let cachedETAs = {};
 
 const WTH_DESC = {
@@ -408,6 +410,7 @@ function renderBuses(allETAs) {
         destEn: rt.destEn,
         etaStr: e.eta,
         etaNum: f,
+        etaSeq: e.eta_seq || 1,
         isFinal: isFinalRoute && e.eta_seq === 1,
       });
       if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * cfg.routes.length) break;
@@ -426,7 +429,7 @@ function renderBuses(allETAs) {
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
         </div>
-        <div class="eta">
+        <div class="eta" data-eta-seq="${u.etaSeq}">
           <div class="num ${u.etaNum.cls}">
             ${u.etaNum.text}
             ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
@@ -473,7 +476,49 @@ async function updateAll() {
 }
 
 function tickCountdown() {
-  renderBuses(cachedETAs);
+  try {
+    // Update displayed ETAs in-place (no full re-render)
+    document.querySelectorAll('.bus-row').forEach(row => {
+      const numEl = row.querySelector('.num');
+      const etaEl = row.querySelector('.eta'); // parent of numEl
+      if (!numEl || !etaEl) return;
+
+      // Pull the ETA timestamp from data attribute, or read it from the route+stop
+      const route = row.querySelector('.route-tag')?.textContent;
+      if (!route || !cachedETAs[route]) return;
+
+      // Find the first non-departed ETA for this route
+      const etas = cachedETAs[route];
+      if (!etas.length) return;
+
+      // Use the etaSeq of this row if stored; otherwise find earliest
+      const etaSeq = parseInt(etaEl.dataset.etaSeq || '1', 10);
+      const match = etas.find(e => e.eta_seq === etaSeq) || etas[0];
+      if (!match || !match.eta) return;
+
+      const now = new Date();
+      const eta = new Date(match.eta);
+      const diffSec = Math.floor((eta - now) / 1000);
+
+      let text, cls, unit;
+      if (diffSec < -120) {
+        text = '已開出'; cls = 'none'; unit = '';
+      } else if (diffSec <= 60) {
+        text = '即將到站'; cls = 'arriving'; unit = '';
+      } else {
+        const mins = Math.floor(diffSec / 60);
+        cls = mins <= 2 ? 'due' : mins <= 5 ? 'near' : mins <= 10 ? 'far' : 'away';
+        text = mins >= 10 ? `${mins}` : `${mins}:${String(diffSec % 60).padStart(2, '0')}`;
+        unit = '分鐘';
+      }
+
+      numEl.className = `num ${cls}`;
+      numEl.innerHTML = text + (unit ? `<span class="unit">${unit}</span>` : '');
+    });
+  } catch (e) {
+    console.error('tickCountdown error:', e);
+    // Fallback: full re-render on next tick
+  }
 }
 
 function updateClock() {
@@ -484,6 +529,8 @@ function updateClock() {
 }
 
 async function init() {
+  // Set the active tab class based on time of day
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === activeTab));
   await updateAll();
   setInterval(updateAll, 30000);
   setInterval(tickCountdown, 5000);
