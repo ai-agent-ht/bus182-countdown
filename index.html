@@ -471,7 +471,6 @@ function renderBuses(allETAs) {
         co: e.co || 'KMB',
         isFinal: (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) || (e.rmk_tc && e.rmk_tc.includes('最後班次')),
       });
-      if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * cfg.routes.length) break;
     }
   }
 
@@ -482,9 +481,22 @@ function renderBuses(allETAs) {
     }
     // else: placeholder rows (稍後有車) already added above
   } else {
-    // Sort upcoming buses and render them
+    // Sort all upcoming buses by ETA (ascending), then cap per-route
     allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
+
+    // Cap to MAX_BUSES_PER_ROUTE per route
+    const perRouteCount = {};
+    const cappedUpcoming = [];
     for (const u of allUpcoming) {
+      const key = u.route;
+      if (!perRouteCount[key]) perRouteCount[key] = 0;
+      if (perRouteCount[key] < MAX_BUSES_PER_ROUTE) {
+        cappedUpcoming.push(u);
+        perRouteCount[key]++;
+      }
+    }
+
+    for (const u of cappedUpcoming) {
       html += `<div class="bus-row">
         <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase()}">${u.co}</span></div>
         <div class="dest-info">
