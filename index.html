@@ -230,6 +230,9 @@ const ROUTES = [
   { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O' },
   { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O' },
 ];
+const MAX_BUSES_PER_ROUTE = 2;
+
+let cachedETAs = {};   // stores last fetched ETA data for live countdown
 
 const WTH_EMOJI = {
   50: '☀️', 51: '⛅', 52: '🌤️', 53: '☁️',
@@ -331,16 +334,17 @@ function renderBuses(allETAs) {
       (e.rmk_tc && e.rmk_tc.includes('最後班次'))
     );
 
-    // Find upcoming buses for this route
-    const upcoming = [];
+    // Show up to MAX_BUSES_PER_ROUTE upcoming buses
+    const shown = [];
     for (const e of routeETAs) {
       const f = formatETA(e.eta);
       if (!f) continue;
-      if (f.cls === 'departed') continue;
-      upcoming.push({ etaStr: e.eta, etaNum: f, isFinal: isFinal && e.eta_seq === 1 });
+      if (f.cls === 'departed') continue;   // totally gone
+      shown.push({ etaStr: e.eta, etaNum: f, isFinal: isFinal && e.eta_seq === 1 });
+      if (shown.length >= MAX_BUSES_PER_ROUTE) break;
     }
 
-    if (upcoming.length === 0) {
+    if (shown.length === 0) {
       // Show route card with "no service"
       html += `<div class="bus-row">
         <div class="route-tag">${rt.num}</div>
@@ -353,7 +357,7 @@ function renderBuses(allETAs) {
         </div>
       </div>`;
     } else {
-      for (const u of upcoming) {
+      for (const u of shown) {
         html += `<div class="bus-row">
           <div class="route-tag">${rt.num}</div>
           <div class="dest-info">
@@ -388,8 +392,9 @@ async function updateAll() {
     const [eta182, eta113, weather] = await Promise.all([
       fetchBusETA('182'), fetchBusETA('113'), fetchWeather(),
     ]);
+    cachedETAs = { 182: eta182, 113: eta113 };
     renderWeather(weather);
-    renderBuses({ 182: eta182, 113: eta113 });
+    renderBuses(cachedETAs);
     const now = new Date();
     $('status').textContent = '✓ ' + now.toLocaleTimeString('zh-HK', {
       timeZone: HKTZ, hour: '2-digit', minute: '2-digit', hour12: false
@@ -398,6 +403,11 @@ async function updateAll() {
     $('status').textContent = '❌ 錯誤';
     console.error(e);
   }
+}
+
+// Live countdown — re-render from cached data every 5s so ETAs tick in real time
+function tickCountdown() {
+  renderBuses(cachedETAs);
 }
 
 function updateClock() {
@@ -409,8 +419,9 @@ function updateClock() {
 
 async function init() {
   await updateAll();
-  setInterval(updateAll, 30000);
-  setInterval(updateClock, 1000);
+  setInterval(updateAll, 30000);    // fresh data every 30s
+  setInterval(tickCountdown, 5000); // live countdown every 5s
+  setInterval(updateClock, 1000);   // clock every 1s
   updateClock();
 }
 
