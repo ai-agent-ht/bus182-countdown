@@ -589,9 +589,7 @@ function updateClock() {
 }
 
 async function init() {
-  // Set the active tab class based on time of day
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === activeTab));
-  await updateAll();
+  switchTab(activeTab);
   setInterval(updateAll, 30000);
   setInterval(tickCountdown, 5000);
   setInterval(updateClock, 1000);
