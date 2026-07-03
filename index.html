@@ -90,7 +90,21 @@
     text-align: center;
     flex-shrink: 0;
     letter-spacing: 1px;
+    position: relative;
   }
+  .co-badge {
+    position: absolute;
+    bottom: -6px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .co-kmb { background: #2563eb; color: #fff; }
+  .co-ctb { background: #dc2626; color: #fff; }
   /* Route-specific tag colors */
   .bus-row .route-tag.r182 { background: #06b6d4; }
   .bus-row .route-tag.r113 { background: #f97316; }
@@ -254,15 +268,16 @@
 
   <div class="status-bar">
     <span id="status">載入中</span>
-    <span>數據: data.gov.hk + HKO</span>
+    <span>數據: KMB + CTB + HKO</span>
   </div>
 </div>
 
 <script>
 const BUS_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
+const CTB_API = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb';
 const WTH_API = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php';
 const HKTZ = 'Asia/Hong_Kong';
-const MAX_BUSES_PER_ROUTE = 2;
+const MAX_BUSES_PER_ROUTE = 3; // allow more since we now merge KMB+CTB
 
 // --- Tab configs ---
 const TABS = {
@@ -270,17 +285,17 @@ const TABS = {
     label: '🌅 上午',
     stopName: '醫療輔助總部',
     routes: [
-      { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
-      { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
+      { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O', stopId: '66C6FDFC88F56E51', ctbStop: null },
+      { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O', stopId: '66C6FDFC88F56E51', ctbStop: '001579', ctbDir: 'I' },
     ],
   },
   afternoon: {
     label: '🌆 下午',
     stopName: '皇后像廣場',
     routes: [
-      { num: '109', destTc: '何文田', destEn: 'HO MAN TIN', dir: 'I', stopId: 'C0B0B597A9C896F7' },
-      { num: '113', destTc: '彩虹', destEn: 'CHOI HUNG', dir: 'I', stopId: 'C0B0B597A9C896F7' },
-      { num: '182', destTc: '愉翠苑', destEn: 'YU CHUI COURT', dir: 'I', stopId: 'A9069A17B1474D76' },
+      { num: '109', destTc: '何文田', destEn: 'HO MAN TIN', dir: 'I', stopId: 'C0B0B597A9C896F7', ctbStop: null },
+      { num: '113', destTc: '彩虹', destEn: 'CHOI HUNG', dir: 'I', stopId: 'C0B0B597A9C896F7', ctbStop: '001051', ctbDir: 'O' },
+      { num: '182', destTc: '愉翠苑', destEn: 'YU CHUI COURT', dir: 'I', stopId: 'A9069A17B1474D76', ctbStop: '001051', ctbDir: 'O' },
     ],
   },
 };
@@ -453,7 +468,8 @@ function renderBuses(allETAs) {
         etaStr: e.eta,
         etaNum: f,
         etaSeq: e.eta_seq || 1,
-        isFinal: isFinalRoute && e.eta_seq === 1,
+        co: e.co || 'KMB',
+        isFinal: (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) || (e.rmk_tc && e.rmk_tc.includes('最後班次')),
       });
       if (allUpcoming.length >= MAX_BUSES_PER_ROUTE * cfg.routes.length) break;
     }
@@ -470,7 +486,7 @@ function renderBuses(allETAs) {
     allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
     for (const u of allUpcoming) {
       html += `<div class="bus-row">
-        <div class="route-tag r${u.route}">${u.route}</div>
+        <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase()}">${u.co}</span></div>
         <div class="dest-info">
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
@@ -490,24 +506,46 @@ function renderBuses(allETAs) {
   app.innerHTML = html;
 }
 
-async function fetchBusETA(stopId, route) {
-  const resp = await fetchWithTimeout(`${BUS_API}/eta/${stopId}/${route}/${1}`);
+async function fetchBusETA(stopId, route, co = 'KMB') {
+  const base = co === 'CTB' ? `${CTB_API}/eta/CTB` : BUS_API;
+  const url = co === 'CTB'
+    ? `${base}/${stopId}/${route}`
+    : `${base}/eta/${stopId}/${route}/${1}`;
+  const resp = await fetchWithTimeout(url);
   const data = await resp.json();
-  return data.data || [];
+  return (data.data || []).map(e => ({ ...e, co }));
 }
 
 async function updateAll() {
   try {
     $('status').textContent = '更新中...';
     const cfg = TABS[activeTab];
-    const fetches = cfg.routes.map(async rt => {
-      try {
-        return { route: rt.num, data: await fetchBusETA(rt.stopId, rt.num) };
-      } catch (e) {
-        console.warn(`Failed to fetch ${rt.num}:`, e);
-        return { route: rt.num, data: [] };
+    const fetches = [];
+    for (const rt of cfg.routes) {
+      // KMB fetch
+      fetches.push((async () => {
+        try {
+          return { route: rt.num, data: await fetchBusETA(rt.stopId, rt.num, 'KMB') };
+        } catch (e) {
+          console.warn(`Failed to fetch KMB ${rt.num}:`, e);
+          return { route: rt.num, data: [] };
+        }
+      })());
+      // CTB fetch if configured
+      if (rt.ctbStop) {
+        fetches.push((async () => {
+          try {
+            let data = await fetchBusETA(rt.ctbStop, rt.num, 'CTB');
+            // Filter by direction if ctbDir is set
+            if (rt.ctbDir) data = data.filter(e => e.dir === rt.ctbDir);
+            return { route: rt.num, data };
+          } catch (e) {
+            console.warn(`Failed to fetch CTB ${rt.num}:`, e);
+            return { route: rt.num, data: [] };
+          }
+        })());
       }
-    });
+    }
 
     let weather;
     try {
@@ -519,7 +557,10 @@ async function updateAll() {
 
     const results = await Promise.all(fetches);
     const etaMap = {};
-    for (const r of results) etaMap[r.route] = r.data;
+    for (const r of results) {
+      if (!etaMap[r.route]) etaMap[r.route] = [];
+      etaMap[r.route] = etaMap[r.route].concat(r.data);
+    }
     cachedETAs = etaMap;
 
     if (weather) renderWeather(weather);
@@ -544,7 +585,7 @@ function tickCountdown() {
       if (!numEl || !etaEl) return;
 
       // Pull the ETA timestamp from data attribute, or read it from the route+stop
-      const route = row.querySelector('.route-tag')?.textContent;
+      const route = row.querySelector('.route-tag')?.dataset?.route;
       if (!route || !cachedETAs[route]) return;
 
       // Find the first non-departed ETA for this route
