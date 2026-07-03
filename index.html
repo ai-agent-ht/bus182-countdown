@@ -302,6 +302,18 @@ const WTH_DESC = {
 
 function $(id) { return document.getElementById(id); }
 
+// --- Fetch with timeout ---
+async function fetchWithTimeout(url, ms = 10000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    return r;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 // --- Tab switching ---
 function switchTab(tabName) {
   activeTab = tabName;
@@ -316,9 +328,18 @@ document.getElementById('tabBar').addEventListener('click', e => {
 });
 
 // --- Weather ---
+let cachedWeather = null;
+let cachedWeatherTime = 0;
+const WEATHER_TTL = 300000; // 5 min
+
 async function fetchWeather() {
-  const resp = await fetch(`${WTH_API}?dataType=rhrread&lang=tc`);
-  return await resp.json();
+  const now = Date.now();
+  if (cachedWeather && (now - cachedWeatherTime) < WEATHER_TTL) return cachedWeather;
+  const resp = await fetchWithTimeout(`${WTH_API}?dataType=rhrread&lang=tc`);
+  const data = await resp.json();
+  cachedWeather = data;
+  cachedWeatherTime = Date.now();
+  return data;
 }
 
 function renderWeather(d) {
@@ -421,7 +442,7 @@ function renderBuses(allETAs) {
   allUpcoming.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
 
   if (allUpcoming.length === 0) {
-    html += '<div class="bus-row"><div class="eta"><div class="num none" style="text-align:center;width:100%">🌙 沒有班次</div></div></div>';
+    html += '<div class="bus-row" style="justify-content:center;padding:24px 20px"><div class="num none" style="text-align:center">🌙 沒有班次</div></div>';
   } else {
     for (const u of allUpcoming) {
       html += `<div class="bus-row">
@@ -446,7 +467,7 @@ function renderBuses(allETAs) {
 }
 
 async function fetchBusETA(stopId, route) {
-  const resp = await fetch(`${BUS_API}/eta/${stopId}/${route}/${1}`);
+  const resp = await fetchWithTimeout(`${BUS_API}/eta/${stopId}/${route}/${1}`);
   const data = await resp.json();
   return data.data || [];
 }
@@ -455,15 +476,29 @@ async function updateAll() {
   try {
     $('status').textContent = '更新中...';
     const cfg = TABS[activeTab];
-    const fetches = cfg.routes.map(rt => fetchBusETA(rt.stopId, rt.num));
-    const results = await Promise.all([...fetches, fetchWeather()]);
-    const weather = results[results.length - 1];
+    const fetches = cfg.routes.map(async rt => {
+      try {
+        return { route: rt.num, data: await fetchBusETA(rt.stopId, rt.num) };
+      } catch (e) {
+        console.warn(`Failed to fetch ${rt.num}:`, e);
+        return { route: rt.num, data: [] };
+      }
+    });
 
+    let weather;
+    try {
+      weather = await fetchWeather();
+    } catch (e) {
+      console.warn('Weather fetch failed:', e);
+      weather = cachedWeather || null;
+    }
+
+    const results = await Promise.all(fetches);
     const etaMap = {};
-    cfg.routes.forEach((rt, i) => { etaMap[rt.num] = results[i]; });
+    for (const r of results) etaMap[r.route] = r.data;
     cachedETAs = etaMap;
 
-    renderWeather(weather);
+    if (weather) renderWeather(weather);
     renderBuses(cachedETAs);
 
     const now = new Date();
