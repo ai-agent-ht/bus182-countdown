@@ -450,7 +450,7 @@ function renderBuses(allETAs) {
     const hasValidETA = routeETAs.some(e => e.eta !== null && e.eta !== undefined);
 
     if (!hasValidETA && routeETAs.length > 0) {
-      // Route exists but no real-time ETA yet — show placeholder
+      // Route exists in schedule but no real-time GPS yet (like KMB 1933 does)
       html += `<div class="bus-row">
         <div class="route-tag r${rt.num}">${rt.num}</div>
         <div class="dest-info">
@@ -458,7 +458,7 @@ function renderBuses(allETAs) {
           <div class="dest-sub">${rt.destEn}</div>
         </div>
         <div class="eta">
-          <div class="num none">稍後有車</div>
+          <div class="num none">預計到站 ⏱️</div>
         </div>
       </div>`;
     }
