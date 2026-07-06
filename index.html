@@ -448,10 +448,15 @@ function renderBuses(allETAs) {
     );
 
     // Check if any ETAs for this route have valid timestamps
-    const hasValidETA = routeETAs.some(e => e.eta !== null && e.eta !== undefined);
+    const hasValidETA = routeETAs.some(e => !!e.eta);
 
     if (!hasValidETA && routeETAs.length > 0) {
-      // Route exists in schedule but no real-time GPS yet (like KMB 1933 does)
+      // Check if final bus has already departed
+      const finalDeparted = routeETAs.some(e =>
+        (e.rmk_en && e.rmk_en.toLowerCase().includes('final bus has departed')) ||
+        (e.rmk_tc && e.rmk_tc.includes('尾班車已'))
+      );
+      const msg = finalDeparted ? '尾班車已開出 🚌' : '預計到站 ⏱️';
       html += `<div class="bus-row">
         <div class="route-tag r${rt.num}">${rt.num}</div>
         <div class="dest-info">
@@ -459,7 +464,7 @@ function renderBuses(allETAs) {
           <div class="dest-sub">${rt.destEn}</div>
         </div>
         <div class="eta">
-          <div class="num none">預計到站 ⏱️</div>
+          <div class="num none">${msg}</div>
         </div>
       </div>`;
     }
