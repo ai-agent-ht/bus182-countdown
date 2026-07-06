@@ -558,6 +558,7 @@ async function updateAll() {
     const cfg = TABS[activeTab];
     const fetches = [];
     for (const rt of cfg.routes) {
+      if (rt.hidden) continue;
       if (rt.type === 'gmb') {
         // GMB fetch
         fetches.push((async () => {
