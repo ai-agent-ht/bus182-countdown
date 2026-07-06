@@ -300,7 +300,7 @@ const TABS = {
       { num: '109', destTc: '何文田', destEn: 'HO MAN TIN', dir: 'I', stopId: 'C0B0B597A9C896F7', ctbStop: '001051', ctbDir: 'O' },
       { num: '113', destTc: '彩虹', destEn: 'CHOI HUNG', dir: 'I', stopId: 'C0B0B597A9C896F7', ctbStop: '001051', ctbDir: 'O' },
       { num: '182', destTc: '愉翠苑', destEn: 'YU CHUI COURT', dir: 'I', stopId: 'A9069A17B1474D76', ctbStop: '001051', ctbDir: 'O' },
-      { type: 'gmb', num: '8M', destTc: '愛民邨', destEn: 'OI MAN ESTATE', routeId: 2006318, routeSeq: 2, stopSeq: 1, stopId: 20014327 },
+      { type: 'gmb', num: '8M', destTc: '愛民邨', destEn: 'OI MAN ESTATE', routeId: 2006318, routeSeq: 2, stopSeq: 1, stopId: 20014327, hidden: true },
     ],
   },
 };
@@ -435,6 +435,7 @@ function renderBuses(allETAs) {
   let hasAnyRouteData = false;
 
   for (const rt of cfg.routes) {
+    if (rt.hidden) continue;
     const routeETAs = rt.type === 'gmb'
       ? (allETAs[rt.num] || [])
       : (allETAs[rt.num] || []).filter(e => e.dir === rt.dir || e.dir === rt.ctbDir);
