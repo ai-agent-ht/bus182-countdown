@@ -280,6 +280,7 @@ const BUS_API = 'https://data.etabus.gov.hk/v1/transport/kmb';
 const CTB_API = 'https://rt.data.gov.hk/v1/transport/citybus-nwfb';
 const GMB_API = 'https://data.etagmb.gov.hk';
 const WTH_API = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php';
+const WTH_FLW = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=tc';
 const HKTZ = 'Asia/Hong_Kong';
 const MAX_BUSES_PER_ROUTE = 3; // allow more since we now merge KMB+CTB
 
@@ -311,16 +312,17 @@ const DEFAULT_TAB = HK_HOUR < 12 ? 'morning' : 'afternoon';
 let activeTab = DEFAULT_TAB;
 let cachedETAs = {};
 
-const WTH_DESC = {
-  50: '晴', 51: '間有陽光', 52: '短暫陽光', 53: '多雲',
-  54: '微雨', 55: '有雨', 56: '大雨', 57: '雷暴',
-  58: '雷暴+大雨', 59: '有雨+狂風',
-  60: '晴 (夜)', 61: '間有陽光 (夜)', 62: '短暫陽光 (夜)', 63: '多雲 (夜)',
-  64: '微雨 (夜)', 65: '有雨 (夜)', 66: '大雨 (夜)', 67: '雷暴 (夜)',
-  68: '雷暴+大雨 (夜)', 69: '有雨+狂風 (夜)',
-};
-
 function $(id) { return document.getElementById(id); }
+
+// Simple icon emoji based on icon code (no stale night/day text)
+function iconEmoji(iconCode) {
+  if (!iconCode) return '🌡️';
+  if (iconCode >= 50 && iconCode <= 53) return '⛅';  // sunny/cloudy
+  if (iconCode >= 54 && iconCode <= 59) return '🌧️'; // rain/thunder
+  if (iconCode >= 60 && iconCode <= 63) return '🌙';  // night clear
+  if (iconCode >= 64 && iconCode <= 69) return '🌧️'; // night rain
+  return '🌡️';
+}
 
 // --- Fetch with timeout ---
 async function fetchWithTimeout(url, ms = 10000) {
@@ -349,29 +351,52 @@ document.getElementById('tabBar').addEventListener('click', e => {
 
 // --- Weather ---
 let cachedWeather = null;
+let cachedForecast = null;
 let cachedWeatherTime = 0;
 const WEATHER_TTL = 300000; // 5 min
 
 async function fetchWeather() {
   const now = Date.now();
-  if (cachedWeather && (now - cachedWeatherTime) < WEATHER_TTL) return cachedWeather;
-  const resp = await fetchWithTimeout(`${WTH_API}?dataType=rhrread&lang=tc`);
-  const data = await resp.json();
-  cachedWeather = data;
+  if (cachedWeather && (now - cachedWeatherTime) < WEATHER_TTL) return { current: cachedWeather, forecast: cachedForecast };
+  const [rhrResp, flwResp] = await Promise.all([
+    fetchWithTimeout(`${WTH_API}?dataType=rhrread&lang=tc`),
+    fetchWithTimeout(WTH_FLW),
+  ]);
+  const current = await rhrResp.json();
+  const forecast = await flwResp.json();
+  cachedWeather = current;
+  cachedForecast = forecast;
   cachedWeatherTime = Date.now();
-  return data;
+  return { current, forecast };
 }
 
-function renderWeather(d) {
-  const kcTemp = d.temperature?.data?.find(t => t.place === 'Kowloon City');
-  const temp = kcTemp?.value ?? d.temperature?.data?.[0]?.value ?? '--';
-  const hum = d.humidity?.data?.[0];
+function renderWeather({ current, forecast }) {
+  const temp = current.temperature?.data?.find(t => t.place === '京士柏')?.value
+    ?? current.temperature?.data?.[0]?.value ?? '--';
+  const hkoTemp = current.temperature?.data?.find(t => t.place === '香港天文台')?.value;
+  const hum = current.humidity?.data?.[0];
   const humStr = hum ? `${hum.value}%` : '';
-  const icon = d.icon?.[0];
+  const icon = current.icon?.[0];
   const iconUrl = icon ? `https://www.weather.gov.hk/images/HKOWxIconOutline/pic${icon}.png` : '';
-  const desc = WTH_DESC[icon] || '';
-  const warnings = d.warningMessage || [];
-  const tcm = d.tcmessage || [];
+  const emoji = iconEmoji(icon);
+
+  // UV Index
+  const uv = current.uvindex?.data?.[0];
+  const uvStr = uv ? `UV ${uv.value} ${uv.desc}` : '';
+
+  // Rainfall summary (total across all districts)
+  const rainfall = current.rainfall?.data || [];
+  const rainTotal = rainfall.reduce((s, r) => s + Math.max(0, r.max || 0), 0);
+  const rainStr = rainTotal > 0 ? `降雨 ${rainTotal.toFixed(1)}mm` : '';
+
+  // Warnings
+  const warnings = current.warningMessage || [];
+  const tcm = current.tcmessage || [];
+
+  // Forecast
+  const fDesc = forecast?.forecastDesc || '';
+  const outlook = forecast?.outlook || '';
+  const tcInfo = forecast?.tcInfo || '';
 
   const hasActiveTC = warnings.some(w =>
     w.includes('熱帶氣旋') || w.includes('Cyclone') || w.includes('Signal')
@@ -379,8 +404,8 @@ function renderWeather(d) {
 
   let wHtml = '';
   for (const w of warnings) {
-    const cls = w.includes('熱帶氣旋') || w.includes('Cyclone') ? 'tc' :
-                w.includes('雷暴') || w.includes('Thunderstorm') || w.includes('rain') ? 'rain' :
+    const cls = w.includes('熱帶氣旋') ? 'tc' :
+                w.includes('雷暴') || w.includes('Thunderstorm') ? 'rain' :
                 w.includes('酷熱') || w.includes('Hot') ? 'hot' :
                 w.includes('寒冷') || w.includes('Cold') ? 'cold' : 'other';
     let label = '';
@@ -400,14 +425,20 @@ function renderWeather(d) {
     }
   }
 
+  // Extra info row: UV + rainfall + HKO temp
+  const extra = [uvStr, rainStr, hkoTemp ? `天文台 ${hkoTemp}°C` : ''].filter(Boolean).join(' · ');
+
   $('weather').innerHTML = `
     <div class="weather-card">
-      <div class="w-icon">${iconUrl ? `<img src="${iconUrl}" alt="${desc}">` : '🌡️'}</div>
+      <div class="w-icon">${iconUrl ? `<img src="${iconUrl}" alt="">` : emoji}</div>
       <div class="w-info">
         <div class="w-temp">${temp}<span class="deg">°C</span></div>
-        <div class="w-desc">${desc}</div>
+        ${extra ? `<div class="w-desc">${extra}</div>` : ''}
         ${humStr ? `<div class="w-humidity">濕度 ${humStr}</div>` : ''}
+        ${fDesc ? `<div class="w-humidity" style="color:#94a3b8">${fDesc}</div>` : ''}
         ${wHtml ? `<div class="w-warning">${wHtml}</div>` : ''}
+        ${tcInfo ? `<div class="w-humidity" style="color:#f97316;margin-top:4px;font-size:13px">🌀 ${tcInfo.replace(/信號/g, '').trim().slice(0, 80)}</div>` : ''}
+        ${outlook ? `<div class="w-humidity" style="color:#64748b;margin-top:2px;font-size:12px">📅 ${outlook.slice(0, 60)}</div>` : ''}
       </div>
     </div>`;
 }
@@ -607,7 +638,7 @@ async function updateAll() {
       weather = await fetchWeather();
     } catch (e) {
       console.warn('Weather fetch failed:', e);
-      weather = cachedWeather || null;
+      weather = (cachedWeather && cachedForecast) ? { current: cachedWeather, forecast: cachedForecast } : null;
     }
 
     const results = await Promise.all(fetches);
