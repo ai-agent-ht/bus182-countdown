@@ -624,6 +624,7 @@ function renderBuses(allETAs) {
       const routeId = rt.num;
       const count = realCount[routeId] || 0;
       if (count >= 2) continue; // already enough real buses
+      if (count === 0) continue; // no real buses — don't guess
 
       // Determine headway: use schedule-based headway from KMB timetable, or fallback
       const nowHK = new Date();
