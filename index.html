@@ -607,26 +607,29 @@ function renderBuses(allETAs) {
     // Check if any ETAs for this route have valid timestamps
     const hasValidETA = routeETAs.some(e => !!e.eta);
 
+    // Only show placeholder row if there are no valid ETAs AND we won't estimate (count<2)
     if (!hasValidETA && routeETAs.length > 0) {
       // Check if final bus has already departed
       const finalDeparted = routeETAs.some(e =>
         (e.rmk_en && e.rmk_en.toLowerCase().includes('final bus has departed')) ||
         (e.rmk_tc && e.rmk_tc.includes('尾班車已'))
       );
-      const coTag = rt.type === 'gmb' ? 'GMB' : (rt.ctbStop ? 'KMB+CTB' : 'KMB');
-      const badgeCls = rt.type === 'gmb' ? 'co-gmb' : 'co-kmb';
-      const msg = finalDeparted ? '尾班車已開出 🚌' : '預計到站 ⏱️';
-      html += `<div class="bus-row">
-        <div class="route-tag r${rt.num}">${rt.num}<span class="co-badge ${badgeCls}">${coTag}</span></div>
-        <div class="dest-info">
-          <div class="dest">${rt.destTc}</div>
-          <div class="dest-sub">${rt.destEn}</div>
-        </div>
-        <div class="eta">
-          <div class="num none">${msg}</div>
-          <div class="tag est">⏱️ 預計</div>
-        </div>
-      </div>`;
+      if (finalDeparted) {
+        // Final bus already gone — show the message and move on
+        const coTag = rt.type === 'gmb' ? 'GMB' : (rt.ctbStop ? 'KMB+CTB' : 'KMB');
+        const badgeCls = rt.type === 'gmb' ? 'co-gmb' : 'co-kmb';
+        html += `<div class="bus-row">
+          <div class="route-tag r${rt.num}">${rt.num}<span class="co-badge ${badgeCls}">${coTag}</span></div>
+          <div class="dest-info">
+            <div class="dest">${rt.destTc}</div>
+            <div class="dest-sub">${rt.destEn}</div>
+          </div>
+          <div class="eta">
+            <div class="num none">尾班車已開出 🚌</div>
+          </div>
+        </div>`;
+      }
+      // Otherwise (no valid ETAs but not final): skip placeholder — estimation code below will generate estimated buses
     }
 
     for (const e of routeETAs) {
@@ -665,7 +668,6 @@ function renderBuses(allETAs) {
       const routeId = rt.num;
       const count = realCount[routeId] || 0;
       if (count >= 2) continue; // already enough real buses
-      if (count === 0) continue; // no real buses — don't guess
 
       // Determine headway: use schedule-based headway from KMB timetable, or fallback
       const nowHK = new Date();
