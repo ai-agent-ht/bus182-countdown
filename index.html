@@ -287,22 +287,25 @@ const HKTZ = 'Asia/Hong_Kong';
 const MAX_BUSES_PER_ROUTE = 3;
 const HEADWAY_DEFAULT = 20; // minutes - default headway when no real-time gap available
 
-// Scheduled headways per route, based on KMB website timetable data
-// Format: { from: hour, to: hour, hw: headway in minutes }
-// Combined KMB+CTB headway ≈ 60% of KMB-only headway (since CTB adds frequency)
-// Data sourced from KMB website timetables for routes 113/182
+// Scheduled headways per route, from KMB website timetable data
+// Format: { from: hour-fraction, to: hour-fraction, hw: headway in minutes }
+// A particular bus on these routes is operated by either KMB or CTB;
+// the KMB timetable headway is the combined headway for the route.
+// Exact time boundaries (hh:mm → fraction) from KMB timetable PDFs.
 const SCHEDULED_HEADWAYS = {
-  // Route 113: 彩虹 → 堅尼地城 (KMB timetable: 15-20 min peak, 20-30 min off-peak)
+  // Route 113: 彩虹 → 堅尼地城 (KMB timetable)
+  // 06:00-07:42 15-20min | 07:42-17:00 26-30min | 17:00-17:50 20min
+  // 17:50-18:50 30min | 18:50-20:18 22min | 20:18-23:00 26-28min | 23:00-00:00 20min
   '113': {
     weekday: [
       { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 8, hw: 12 },  // 06:00-07:42: KMB 15-20 + CTB → ~12min combined
-      { from: 8, to: 17, hw: 18 }, // 07:42-17:30: KMB 26-30 + CTB → ~18min combined
-      { from: 17, to: 18, hw: 12 },// 17:30-17:50: KMB 20 → ~12min combined
-      { from: 18, to: 19, hw: 20 },// 17:50-18:50: KMB 30 → ~20min combined  
-      { from: 19, to: 20, hw: 14 },// 18:50-20:18: KMB 22 → ~14min combined
-      { from: 20, to: 23, hw: 18 },// 20:18-23:00: KMB 26-28 → ~18min combined
-      { from: 23, to: 24, hw: 14 },// 23:00-00:00: KMB 20 → ~14min combined
+      { from: 6, to: 7.7, hw: 18 },     // 06:00-07:42: 15-20min
+      { from: 7.7, to: 17, hw: 28 },    // 07:42-17:00: 26-30min
+      { from: 17, to: 17.83, hw: 20 },  // 17:00-17:50: 20min
+      { from: 17.83, to: 18.83, hw: 30 },// 17:50-18:50: 30min
+      { from: 18.83, to: 20.3, hw: 22 },// 18:50-20:18: 22min
+      { from: 20.3, to: 23, hw: 27 },   // 20:18-23:00: 26-28min
+      { from: 23, to: 24, hw: 20 },     // 23:00-00:00: 20min
     ],
     sat: [
       { from: 0, to: 6, hw: 20 },
@@ -319,13 +322,13 @@ const SCHEDULED_HEADWAYS = {
       { from: 23, to: 24, hw: 20 },
     ],
   },
-  // Route 182: 愉翠苑 → 中環(港澳碼頭) (KMB timetable: 17-20min peak, 25-30min off-peak)
+  // Route 182: 愉翠苑 → 中環(港澳碼頭) (KMB timetable)
+  // 06:00-07:50 17-20min | 07:50-24:00 25-30min
   '182': {
     weekday: [
       { from: 0, to: 6, hw: 25 },
-      { from: 6, to: 8, hw: 12 },  // 06:00-07:50: KMB 17-20 + CTB → ~12min combined
-      { from: 8, to: 21, hw: 18 }, // 07:50+: KMB 25-30 + CTB → ~18min combined
-      { from: 21, to: 24, hw: 20 },
+      { from: 6, to: 7.83, hw: 18 },   // 06:00-07:50: 17-20min
+      { from: 7.83, to: 24, hw: 28 },  // 07:50+: 25-30min
     ],
     sat: [
       { from: 0, to: 6, hw: 25 },
