@@ -293,6 +293,33 @@ const HEADWAY_DEFAULT = 20; // minutes - default headway when no real-time gap a
 // the KMB timetable headway is the combined headway for the route.
 // Exact time boundaries (hh:mm → fraction) from KMB timetable PDFs.
 const SCHEDULED_HEADWAYS = {
+  // Route 109: 何文田 → 中環(港澳碼頭) (KMB timetable)
+  // 06:45-07:40 15-20 | 07:40-08:30 8-11 | 08:30-08:45 15
+  // 08:45-09:30 20-25 | 09:30-10:30 30 | 10:30-10:50 20
+  // 10:50-17:40 25-30 | 17:40-18:00 20 | 18:00-23:20 25-30 | 23:20-00:06 21-25
+  '109': {
+    weekday: [
+      { from: 0, to: 6.75, hw: 20 },
+      { from: 6.75, to: 7.67, hw: 18 },  // 06:45-07:40: 15-20min
+      { from: 7.67, to: 8.5, hw: 10 },    // 07:40-08:30: 8-11min
+      { from: 8.5, to: 8.75, hw: 15 },    // 08:30-08:45: 15min
+      { from: 8.75, to: 9.5, hw: 23 },    // 08:45-09:30: 20-25min
+      { from: 9.5, to: 10.5, hw: 30 },    // 09:30-10:30: 30min
+      { from: 10.5, to: 10.83, hw: 20 },  // 10:30-10:50: 20min
+      { from: 10.83, to: 17.67, hw: 28 }, // 10:50-17:40: 25-30min
+      { from: 17.67, to: 18, hw: 20 },    // 17:40-18:00: 20min
+      { from: 18, to: 23.33, hw: 28 },    // 18:00-23:20: 25-30min
+      { from: 23.33, to: 24, hw: 23 },    // 23:20-00:06: 21-25min
+    ],
+    sat: [
+      { from: 0, to: 7, hw: 28 },
+      { from: 7, to: 24, hw: 28 },        // 07:00-00:06: 27-30min
+    ],
+    sun: [
+      { from: 0, to: 7.33, hw: 28 },
+      { from: 7.33, to: 24, hw: 28 },     // 07:20-00:06: 26-30min
+    ],
+  },
   // Route 113: 彩虹 → 堅尼地城 (KMB timetable)
   // 06:00-07:42 15-20min | 07:42-17:00 26-30min | 17:00-17:50 20min
   // 17:50-18:50 30min | 18:50-20:18 22min | 20:18-23:00 26-28min | 23:00-00:00 20min
