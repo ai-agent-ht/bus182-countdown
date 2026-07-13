@@ -287,6 +287,60 @@ const HKTZ = 'Asia/Hong_Kong';
 const MAX_BUSES_PER_ROUTE = 3;
 const HEADWAY_DEFAULT = 20; // minutes - default headway when no real-time gap available
 
+// Scheduled headways per route, based on KMB timetable data
+// Format: [startHour, headwayMinutes] — the headway applies from startHour onward
+// Data sourced from KMB website timetables for routes 113/182
+const SCHEDULED_HEADWAYS = {
+  // Route 113: 彩虹 → 堅尼地城 (estimated ~20min travel to 醫療輔助總部)
+  '113': {
+    weekday: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 16 }, // 06:00-09:00: 25-26min terminus → ~16min at our stop (joint KMB+CTB)
+      { from: 9, to: 16, hw: 20 }, // 09:00-16:00: 20-25min terminus → ~20min combined
+      { from: 16, to: 23, hw: 25 }, // 16:00-23:00: 25-30min terminus → ~25min combined
+      { from: 23, to: 24, hw: 20 }, // 23:00-00:00: 20min
+    ],
+    sat: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 16 },
+      { from: 9, to: 16, hw: 20 },
+      { from: 16, to: 23, hw: 25 },
+      { from: 23, to: 24, hw: 20 },
+    ],
+    sun: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 16 },
+      { from: 9, to: 16, hw: 20 },
+      { from: 16, to: 23, hw: 25 },
+      { from: 23, to: 24, hw: 20 },
+    ],
+  },
+  // Route 182: 愉翠苑 → 中環(港澳碼頭) (estimated ~20min travel to 醫療輔助總部)
+  '182': {
+    weekday: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 15 }, // Peak: frequent service
+      { from: 9, to: 16, hw: 20 },
+      { from: 16, to: 20, hw: 15 }, // PM peak
+      { from: 20, to: 24, hw: 20 },
+    ],
+    sat: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 15 },
+      { from: 9, to: 16, hw: 20 },
+      { from: 16, to: 20, hw: 15 },
+      { from: 20, to: 24, hw: 20 },
+    ],
+    sun: [
+      { from: 0, to: 6, hw: 20 },
+      { from: 6, to: 9, hw: 15 },
+      { from: 9, to: 16, hw: 20 },
+      { from: 16, to: 20, hw: 15 },
+      { from: 20, to: 24, hw: 20 },
+    ],
+  },
+};
+
 // --- Tab configs ---
 const TABS = {
   morning: {
@@ -540,8 +594,29 @@ function renderBuses(allETAs) {
       const count = realCount[routeId] || 0;
       if (count >= 2) continue; // already enough real buses
 
-      // Determine headway: use gap between real buses if available, else default
-      let headwayMs = HEADWAY_DEFAULT * 60 * 1000;
+      // Determine headway: use schedule-based headway from KMB timetable, or fallback
+      const nowHK = new Date();
+      const hkHour = nowHK.getHours();
+      const dayOfWeek = nowHK.getDay();
+      const isSat = dayOfWeek === 6;
+      const isSun = dayOfWeek === 0;
+      
+      // Look up schedule-based headway
+      let scheduleHw = HEADWAY_DEFAULT;
+      const routeHw = SCHEDULED_HEADWAYS[routeId];
+      if (routeHw) {
+        const dayType = isSun ? 'sun' : isSat ? 'sat' : 'weekday';
+        const periods = routeHw[dayType];
+        for (const p of periods) {
+          if (hkHour >= p.from && hkHour < p.to) {
+            scheduleHw = p.hw;
+            break;
+          }
+        }
+      }
+      let headwayMs = scheduleHw * 60 * 1000;
+
+      // If we have ≥2 real buses, use actual gap instead (more accurate)
       const routeReal = allUpcoming.filter(u => u.route === routeId);
       if (routeReal.length >= 2) {
         routeReal.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
