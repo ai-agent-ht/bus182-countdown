@@ -613,15 +613,18 @@ function renderBuses(allETAs) {
         (e.rmk_en && e.rmk_en.toLowerCase().includes('final bus has departed')) ||
         (e.rmk_tc && e.rmk_tc.includes('尾班車已'))
       );
+      const coTag = rt.type === 'gmb' ? 'GMB' : (rt.ctbStop ? 'KMB+CTB' : 'KMB');
+      const badgeCls = rt.type === 'gmb' ? 'co-gmb' : 'co-kmb';
       const msg = finalDeparted ? '尾班車已開出 🚌' : '預計到站 ⏱️';
       html += `<div class="bus-row">
-        <div class="route-tag r${rt.num}">${rt.num}</div>
+        <div class="route-tag r${rt.num}">${rt.num}<span class="co-badge ${badgeCls}">${coTag}</span></div>
         <div class="dest-info">
           <div class="dest">${rt.destTc}</div>
           <div class="dest-sub">${rt.destEn}</div>
         </div>
         <div class="eta">
           <div class="num none">${msg}</div>
+          <div class="tag est">⏱️ 預計</div>
         </div>
       </div>`;
     }
