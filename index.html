@@ -113,6 +113,7 @@
   .co-ctb { background: #dc2626; color: #fff; }
   .co-gmb { background: #059669; color: #fff; }
   .co-est { background: #64748b; color: #fff; }
+  .co-kmbctb { background: #2563eb; color: #fff; }
   .bus-row .dest-info { flex: 1; min-width: 0; }
   .bus-row .dest-info .dest {
     font-size: 16px;
@@ -719,7 +720,8 @@ function renderBuses(allETAs) {
           etaStr: estEta.toISOString(),
           etaNum: f,
           etaSeq: 99 + i,
-          co: 'EST',
+          co: rt.type === 'gmb' ? 'GMB' : (rt.ctbStop ? 'KMB+CTB' : 'KMB'),
+          isEstimated: true,
           isFinal: false,
         });
       }
@@ -750,7 +752,7 @@ function renderBuses(allETAs) {
 
     for (const u of cappedUpcoming) {
       html += `<div class="bus-row">
-        <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase()}">${u.co === 'EST' ? '⏱️' : u.co}</span></div>
+        <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase().replace(/[^a-z0-9]/g, '')}">${u.co}</span></div>
         <div class="dest-info">
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
@@ -761,7 +763,7 @@ function renderBuses(allETAs) {
             ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
           </div>
           ${u.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
-          ${u.co === 'EST' ? '<div class="tag est">⏱️ 預計</div>' : ''}
+          ${u.isEstimated ? '<div class="tag est">⏱️ 預計</div>' : ''}
         </div>
       </div>`;
     }
