@@ -287,56 +287,57 @@ const HKTZ = 'Asia/Hong_Kong';
 const MAX_BUSES_PER_ROUTE = 3;
 const HEADWAY_DEFAULT = 20; // minutes - default headway when no real-time gap available
 
-// Scheduled headways per route, based on KMB timetable data
-// Format: [startHour, headwayMinutes] — the headway applies from startHour onward
+// Scheduled headways per route, based on KMB website timetable data
+// Format: { from: hour, to: hour, hw: headway in minutes }
+// Combined KMB+CTB headway ≈ 60% of KMB-only headway (since CTB adds frequency)
 // Data sourced from KMB website timetables for routes 113/182
 const SCHEDULED_HEADWAYS = {
-  // Route 113: 彩虹 → 堅尼地城 (estimated ~20min travel to 醫療輔助總部)
+  // Route 113: 彩虹 → 堅尼地城 (KMB timetable: 15-20 min peak, 20-30 min off-peak)
   '113': {
     weekday: [
       { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 16 }, // 06:00-09:00: 25-26min terminus → ~16min at our stop (joint KMB+CTB)
-      { from: 9, to: 16, hw: 20 }, // 09:00-16:00: 20-25min terminus → ~20min combined
-      { from: 16, to: 23, hw: 25 }, // 16:00-23:00: 25-30min terminus → ~25min combined
-      { from: 23, to: 24, hw: 20 }, // 23:00-00:00: 20min
+      { from: 6, to: 8, hw: 12 },  // 06:00-07:42: KMB 15-20 + CTB → ~12min combined
+      { from: 8, to: 17, hw: 18 }, // 07:42-17:30: KMB 26-30 + CTB → ~18min combined
+      { from: 17, to: 18, hw: 12 },// 17:30-17:50: KMB 20 → ~12min combined
+      { from: 18, to: 19, hw: 20 },// 17:50-18:50: KMB 30 → ~20min combined  
+      { from: 19, to: 20, hw: 14 },// 18:50-20:18: KMB 22 → ~14min combined
+      { from: 20, to: 23, hw: 18 },// 20:18-23:00: KMB 26-28 → ~18min combined
+      { from: 23, to: 24, hw: 14 },// 23:00-00:00: KMB 20 → ~14min combined
     ],
     sat: [
       { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 16 },
+      { from: 6, to: 9, hw: 18 },
       { from: 9, to: 16, hw: 20 },
-      { from: 16, to: 23, hw: 25 },
+      { from: 16, to: 23, hw: 22 },
       { from: 23, to: 24, hw: 20 },
     ],
     sun: [
-      { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 16 },
-      { from: 9, to: 16, hw: 20 },
+      { from: 0, to: 6, hw: 25 },
+      { from: 6, to: 9, hw: 20 },
+      { from: 9, to: 16, hw: 22 },
       { from: 16, to: 23, hw: 25 },
       { from: 23, to: 24, hw: 20 },
     ],
   },
-  // Route 182: 愉翠苑 → 中環(港澳碼頭) (estimated ~20min travel to 醫療輔助總部)
+  // Route 182: 愉翠苑 → 中環(港澳碼頭) (KMB timetable: 17-20min peak, 25-30min off-peak)
   '182': {
     weekday: [
-      { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 15 }, // Peak: frequent service
-      { from: 9, to: 16, hw: 20 },
-      { from: 16, to: 20, hw: 15 }, // PM peak
-      { from: 20, to: 24, hw: 20 },
+      { from: 0, to: 6, hw: 25 },
+      { from: 6, to: 8, hw: 12 },  // 06:00-07:50: KMB 17-20 + CTB → ~12min combined
+      { from: 8, to: 21, hw: 18 }, // 07:50+: KMB 25-30 + CTB → ~18min combined
+      { from: 21, to: 24, hw: 20 },
     ],
     sat: [
-      { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 15 },
-      { from: 9, to: 16, hw: 20 },
-      { from: 16, to: 20, hw: 15 },
-      { from: 20, to: 24, hw: 20 },
+      { from: 0, to: 6, hw: 25 },
+      { from: 6, to: 8, hw: 18 },
+      { from: 8, to: 21, hw: 22 },
+      { from: 21, to: 24, hw: 25 },
     ],
     sun: [
-      { from: 0, to: 6, hw: 20 },
-      { from: 6, to: 9, hw: 15 },
-      { from: 9, to: 16, hw: 20 },
-      { from: 16, to: 20, hw: 15 },
-      { from: 20, to: 24, hw: 20 },
+      { from: 0, to: 6, hw: 25 },
+      { from: 6, to: 8, hw: 18 },
+      { from: 8, to: 21, hw: 22 },
+      { from: 21, to: 24, hw: 25 },
     ],
   },
 };
