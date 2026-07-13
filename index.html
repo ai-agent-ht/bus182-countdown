@@ -112,6 +112,7 @@
   .co-kmb { background: #2563eb; color: #fff; }
   .co-ctb { background: #dc2626; color: #fff; }
   .co-gmb { background: #059669; color: #fff; }
+  .co-est { background: #64748b; color: #fff; }
   .bus-row .dest-info { flex: 1; min-width: 0; }
   .bus-row .dest-info .dest {
     font-size: 16px;
@@ -147,6 +148,7 @@
     margin-top: 2px;
   }
   .bus-row .eta .tag.final { background: #eab308; color: #0f172a; }
+  .bus-row .eta .tag.est { background: #64748b; color: #f1f5f9; }
 
   /* --- Weather --- */
   .weather-card {
@@ -282,7 +284,8 @@ const GMB_API = 'https://data.etagmb.gov.hk';
 const WTH_API = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php';
 const WTH_FLW = 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=tc';
 const HKTZ = 'Asia/Hong_Kong';
-const MAX_BUSES_PER_ROUTE = 3; // allow more since we now merge KMB+CTB
+const MAX_BUSES_PER_ROUTE = 3;
+const HEADWAY_DEFAULT = 20; // minutes - default headway when no real-time gap available
 
 // --- Tab configs ---
 const TABS = {
@@ -515,6 +518,61 @@ function renderBuses(allETAs) {
         isFinal: (e.rmk_en && e.rmk_en.toLowerCase().includes('final')) || (e.rmk_tc && e.rmk_tc.includes('最後班次')),
       });
     }
+
+    // --- Estimate additional buses if <2 per route ---
+    // Count real (non-estimated) buses per route
+    const realCount = {};
+    for (const u of allUpcoming) {
+      if (!realCount[u.route]) realCount[u.route] = 0;
+      realCount[u.route]++;
+    }
+    // Get the last real ETA per route to compute headway
+    const lastEtaByRoute = {};
+    for (const u of allUpcoming) {
+      if (!lastEtaByRoute[u.route] || u.etaStr > lastEtaByRoute[u.route]) {
+        lastEtaByRoute[u.route] = u.etaStr;
+      }
+    }
+
+    for (const rt of cfg.routes) {
+      if (rt.hidden) continue;
+      const routeId = rt.num;
+      const count = realCount[routeId] || 0;
+      if (count >= 2) continue; // already enough real buses
+
+      // Determine headway: use gap between real buses if available, else default
+      let headwayMs = HEADWAY_DEFAULT * 60 * 1000;
+      const routeReal = allUpcoming.filter(u => u.route === routeId);
+      if (routeReal.length >= 2) {
+        routeReal.sort((a, b) => new Date(a.etaStr) - new Date(b.etaStr));
+        const gap = new Date(routeReal[1].etaStr) - new Date(routeReal[0].etaStr);
+        if (gap > 5 * 60 * 1000 && gap < 120 * 60 * 1000) {
+          headwayMs = gap;
+        }
+      }
+
+      const needed = 2 - count;
+      let lastTime = lastEtaByRoute[routeId] 
+        ? new Date(lastEtaByRoute[routeId]).getTime() 
+        : Date.now() + 5 * 60 * 1000; // if no buses, estimate first bus in 5min
+
+      for (let i = 0; i < needed; i++) {
+        lastTime += headwayMs;
+        const estEta = new Date(lastTime);
+        const f = formatETA(estEta.toISOString());
+        if (!f) continue;
+        allUpcoming.push({
+          route: routeId,
+          destTc: rt.destTc,
+          destEn: rt.destEn,
+          etaStr: estEta.toISOString(),
+          etaNum: f,
+          etaSeq: 99 + i,
+          co: 'EST',
+          isFinal: false,
+        });
+      }
+    }
   }
 
   if (allUpcoming.length === 0) {
@@ -541,7 +599,7 @@ function renderBuses(allETAs) {
 
     for (const u of cappedUpcoming) {
       html += `<div class="bus-row">
-        <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase()}">${u.co}</span></div>
+        <div class="route-tag r${u.route}" data-route="${u.route}">${u.route}<span class="co-badge co-${u.co.toLowerCase()}">${u.co === 'EST' ? '⏱️' : u.co}</span></div>
         <div class="dest-info">
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
@@ -552,6 +610,7 @@ function renderBuses(allETAs) {
             ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
           </div>
           ${u.isFinal ? '<div class="tag final">🚌 尾班車</div>' : ''}
+          ${u.co === 'EST' ? '<div class="tag est">⏱️ 預計</div>' : ''}
         </div>
       </div>`;
     }
