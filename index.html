@@ -810,7 +810,13 @@ async function updateAll() {
     const etaMap = {};
     for (const r of results) {
       if (!etaMap[r.route]) etaMap[r.route] = [];
-      etaMap[r.route] = etaMap[r.route].concat(r.data);
+      // Offset CTB eta_seq by 1000 so they never collide with KMB eta_seq
+      // (both APIs start eta_seq at 1, causing tickCountdown to match wrong bus)
+      const offsetData = r.data.map(e => ({
+        ...e,
+        eta_seq: (e.co === 'CTB' ? (e.eta_seq || 1) + 1000 : e.eta_seq || 1),
+      }));
+      etaMap[r.route] = etaMap[r.route].concat(offsetData);
     }
     cachedETAs = etaMap;
 
