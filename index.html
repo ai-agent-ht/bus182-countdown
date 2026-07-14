@@ -757,7 +757,7 @@ function renderBuses(allETAs) {
           <div class="dest">${u.destTc}</div>
           <div class="dest-sub">${u.destEn}</div>
         </div>
-        <div class="eta" data-eta-seq="${u.etaSeq}">
+        <div class="eta" data-eta-seq="${u.etaSeq}" data-eta-str="${u.etaStr}">
           <div class="num ${u.etaNum.cls}">
             ${u.etaNum.text}
             ${u.etaNum.unit ? `<span class="unit">${u.etaNum.unit}</span>` : ''}
@@ -888,6 +888,10 @@ function tickCountdown() {
       const etaEl = row.querySelector('.eta'); // parent of numEl
       if (!numEl || !etaEl) return;
 
+      // Skip estimated buses (⏱️ 預計) — they're regenerated on next full re-render
+      // and their eta_seq (99/100) doesn't exist in cachedETAs, causing fallback to etas[0]
+      if (row.querySelector('.tag.est')) return;
+
       // Pull the ETA timestamp from data attribute, or read it from the route+stop
       const route = row.querySelector('.route-tag')?.dataset?.route;
       if (!route || !cachedETAs[route]) return;
@@ -896,9 +900,15 @@ function tickCountdown() {
       const etas = cachedETAs[route];
       if (!etas.length) return;
 
-      // Use the etaSeq of this row if stored; otherwise find earliest
+      // Use the etaSeq of this row if stored; otherwise fall back to timestamp
       const etaSeq = parseInt(etaEl.dataset.etaSeq || '1', 10);
-      const match = etas.find(e => e.eta_seq === etaSeq) || etas[0];
+      const etaStr = etaEl.dataset.etaStr;
+      let match = etas.find(e => e.eta_seq === etaSeq);
+      // Fallback: use the stored timestamp directly (works for estimated buses too)
+      if (!match && etaStr) {
+        match = { eta: etaStr };
+      }
+      if (!match) match = etas[0];
       if (!match || !match.eta) return;
 
       const now = new Date();
