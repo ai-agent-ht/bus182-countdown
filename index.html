@@ -417,8 +417,8 @@ const TABS = {
     label: '🌅 上午',
     stopName: '醫療輔助總部',
     routes: [
-      { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O', stopId: '66C6FDFC88F56E51', ctbStop: '001579', ctbDir: 'O' },
-      { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O', stopId: '66C6FDFC88F56E51', ctbStop: '001579', ctbDir: 'O' },
+      { num: '182', destTc: '中環(港澳碼頭)', destEn: 'CENTRAL (MACAO FERRY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
+      { num: '113', destTc: '堅尼地城(卑路乍灣)', destEn: 'KENNEDY TOWN (BELCHER BAY)', dir: 'O', stopId: '66C6FDFC88F56E51' },
     ],
   },
   afternoon: {
@@ -572,7 +572,7 @@ function renderWeather({ current, forecast }) {
 
 // --- Buses ---
 function formatETA(etaStr) {
-  if (!etaStr) return null;
+  if (!etaStr || typeof etaStr !== 'string' || etaStr.trim() === '') return null;
   const now = new Date();
   const eta = new Date(etaStr);
   const diffSec = Math.floor((eta - now) / 1000);
@@ -629,8 +629,21 @@ function renderBuses(allETAs) {
             <div class="num none">尾班車已開出 🚌</div>
           </div>
         </div>`;
+      } else {
+        // No valid ETAs and no estimation — show "no data"
+        const coTag = rt.type === 'gmb' ? 'GMB' : (rt.ctbStop ? 'KMB+CTB' : 'KMB');
+        const badgeCls = rt.type === 'gmb' ? 'co-gmb' : 'co-kmb';
+        html += `<div class="bus-row">
+          <div class="route-tag r${rt.num}">${rt.num}<span class="co-badge ${badgeCls}">${coTag}</span></div>
+          <div class="dest-info">
+            <div class="dest">${rt.destTc}</div>
+            <div class="dest-sub">${rt.destEn}</div>
+          </div>
+          <div class="eta">
+            <div class="num none">暫無數據</div>
+          </div>
+        </div>`;
       }
-      // Otherwise (no valid ETAs but not final): skip placeholder — estimation code below will generate estimated buses
     }
 
     for (const e of routeETAs) {
@@ -649,7 +662,7 @@ function renderBuses(allETAs) {
       });
     }
 
-    // --- Estimate additional buses if <2 per route ---
+    // --- Estimate additional buses if <2 per route, and ONLY if we have real data ---
     // Count real (non-estimated) buses per route
     const realCount = {};
     for (const u of allUpcoming) {
@@ -669,6 +682,10 @@ function renderBuses(allETAs) {
       const routeId = rt.num;
       const count = realCount[routeId] || 0;
       if (count >= 2) continue; // already enough real buses
+      if (count === 0) continue; // no real bus to anchor estimation — don't invent phantom buses
+
+      // If we have a scheduled bus (rmk includes "原定班次"), treat it as real
+      // Only estimate when we have at least one real ETA to anchor from
 
       // Determine headway: use schedule-based headway from KMB timetable, or fallback
       const nowHK = new Date();
