@@ -594,9 +594,15 @@ function renderBuses(allETAs) {
 
   for (const rt of cfg.routes) {
     if (rt.hidden) continue;
+    // A joint route (KMB + CTB) is fetched from both feeds, and the two operators label the
+    // directions oppositely — hence ctbDir. So each row must be matched against the expected
+    // direction FOR ITS OWN OPERATOR. Matching either direction let wrong-way buses in.
     const routeETAs = rt.type === 'gmb'
       ? (allETAs[rt.num] || [])
-      : (allETAs[rt.num] || []).filter(e => e.dir === rt.dir || e.dir === rt.ctbDir);
+      : (allETAs[rt.num] || []).filter(e => {
+          if (!e.dir) return true;
+          return e.co === 'CTB' ? e.dir === (rt.ctbDir || rt.dir) : e.dir === rt.dir;
+        });
 
     if (routeETAs.length > 0) hasAnyRouteData = true;
 
